@@ -1,6 +1,6 @@
 {
   "name": "@fraziym/mcp",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.2",
   "description": "Fraziym MCP — shared agent toolbelt. Hardcoded, importable tool groups that wrap @fraziym/axoniz tool classes (files, shell, web, code, axodex) plus git, for the axo ecosystem's agents.",
   "keywords": [
     "ai",
@@ -31,6 +31,10 @@
     "./xorvoid": {
       "types": "./dist/groups/xorvoid.d.ts",
       "import": "./dist/groups/xorvoid.js"
+    },
+    "./axoniz": {
+      "types": "./dist/groups/axoniz.d.ts",
+      "import": "./dist/groups/axoniz.js"
     }
   },
   "main": "./dist/index.js",

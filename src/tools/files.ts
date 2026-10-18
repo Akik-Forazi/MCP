@@ -11,7 +11,13 @@ import type { Toolbox } from "../core/toolbox.ts";
 const S = (description: string) => ({ type: "string", description });
 const I = (description: string) => ({ type: "integer", description });
 
-export function registerFileTools(tb: Toolbox, ft: FileTools): void {
+export interface FileToolsOptions {
+  /** Register the mcp-only extras (file_patch, file_grep). Default true. */
+  extras?: boolean;
+}
+
+export function registerFileTools(tb: Toolbox, ft: FileTools, opts: FileToolsOptions = {}): void {
+  const extras = opts.extras !== false;
   tb.register(
     "file_read",
     "Read a file with line numbers. Optional start_line/end_line range.",
@@ -51,14 +57,16 @@ export function registerFileTools(tb: Toolbox, ft: FileTools): void {
     { destructive: true },
   );
 
-  tb.register(
-    "file_patch",
-    "Apply a unified diff patch to a file.",
-    { path: S("File path"), patch: S("Unified diff hunk text") },
-    ["path", "patch"],
-    (args) => ft.patch(argStr(args, "path"), argStr(args, "patch")),
-    { destructive: true },
-  );
+  if (extras) {
+    tb.register(
+      "file_patch",
+      "Apply a unified diff patch to a file.",
+      { path: S("File path"), patch: S("Unified diff hunk text") },
+      ["path", "patch"],
+      (args) => ft.patch(argStr(args, "path"), argStr(args, "patch")),
+      { destructive: true },
+    );
+  }
 
   tb.register(
     "file_delete",
@@ -85,24 +93,26 @@ export function registerFileTools(tb: Toolbox, ft: FileTools): void {
     (args) => ft.search(argStr(args, "path", "."), argStr(args, "pattern")),
   );
 
-  tb.register(
-    "file_grep",
-    "Search file contents for a text/regex pattern (like ripgrep).",
-    {
-      pattern: S("Regex or literal to search for"),
-      path: S('Base directory (default ".")'),
-      file_pattern: S('Glob filter for files (default "*")'),
-      case_sensitive: { type: "boolean", description: "Case-sensitive match (default true)" },
-      max_results: I("Max matched lines (default 50)"),
-    },
-    ["pattern"],
-    (args) =>
-      ft.grep(
-        argStr(args, "path", "."),
-        argStr(args, "pattern"),
-        argStr(args, "file_pattern", "*"),
-        args.case_sensitive === undefined ? true : args.case_sensitive === true || args.case_sensitive === "true",
-        argInt(args, "max_results", 50),
-      ),
-  );
+  if (extras) {
+    tb.register(
+      "file_grep",
+      "Search file contents for a text/regex pattern (like ripgrep).",
+      {
+        pattern: S("Regex or literal to search for"),
+        path: S('Base directory (default ".")'),
+        file_pattern: S('Glob filter for files (default "*")'),
+        case_sensitive: { type: "boolean", description: "Case-sensitive match (default true)" },
+        max_results: I("Max matched lines (default 50)"),
+      },
+      ["pattern"],
+      (args) =>
+        ft.grep(
+          argStr(args, "path", "."),
+          argStr(args, "pattern"),
+          argStr(args, "file_pattern", "*"),
+          args.case_sensitive === undefined ? true : args.case_sensitive === true || args.case_sensitive === "true",
+          argInt(args, "max_results", 50),
+        ),
+    );
+  }
 }

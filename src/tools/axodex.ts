@@ -1,6 +1,9 @@
 /**
  * Axodex tool wrappers — binds axoniz `AxodexTools` (graph-powered code
  * intelligence via the axodex CLI) to axodex_* tools.
+ *
+ * mode "core": query/context/impact/smart_read/status (xorvoidTools default).
+ * mode "full": the complete 7-tool axoniz surface (+ detect_changes/analyze).
  */
 
 import type { AxodexTools } from "@fraziym/axoniz/tools";
@@ -11,7 +14,9 @@ import type { Toolbox } from "../core/toolbox.ts";
 const S = (description: string) => ({ type: "string", description });
 const I = (description: string) => ({ type: "integer", description });
 
-export function registerAxodexTools(tb: Toolbox, at: AxodexTools): void {
+export type AxodexToolsMode = "core" | "full";
+
+export function registerAxodexTools(tb: Toolbox, at: AxodexTools, mode: AxodexToolsMode = "core"): void {
   tb.register(
     "axodex_query",
     "Semantic search across the codebase knowledge graph (concepts, flows).",
@@ -50,5 +55,23 @@ export function registerAxodexTools(tb: Toolbox, at: AxodexTools): void {
     {},
     [],
     () => at.status(),
+  );
+
+  if (mode !== "full") return;
+
+  tb.register(
+    "axodex_detect_changes",
+    "Verify which symbols and execution flows are affected by uncommitted edits.",
+    {},
+    [],
+    () => at.detect_changes(),
+  );
+
+  tb.register(
+    "axodex_analyze",
+    "Force a full refresh of the workspace's code graph index.",
+    {},
+    [],
+    () => at.analyze(),
   );
 }

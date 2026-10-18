@@ -44,6 +44,12 @@ export class Toolbox {
     return this;
   }
 
+  /** Register with a pre-built OpenAI function schema (used verbatim). */
+  registerSpec(schema: ToolFunctionSchema, handler: ToolHandler, meta: ToolMeta = {}): this {
+    this.tools.set(schema.function.name, { schema, handler, meta });
+    return this;
+  }
+
   has(name: string): boolean {
     return this.tools.has(name);
   }
