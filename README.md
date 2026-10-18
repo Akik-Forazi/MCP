@@ -27,6 +27,21 @@ tools.has("git_push");                                    // true in axonizTools
 tools.meta("git_push");                                   // { destructive: true, network: true }
 ```
 
+## CLI
+
+Ships with the package as `fraziym-mcp`. On Windows the tarball also includes `bin/fraziym-mcp.exe` — a tiny launcher that runs the CLI through your installed Node, so MCP clients spawn a real exe instead of a `.cmd` shim:
+
+```sh
+fraziym-mcp serve [--group axoniz|xorvoid|all] [--workspace .] [--read-only] [--no-network]
+fraziym-mcp tools [--group ...] [--json]
+fraziym-mcp call <tool> '{"arg":"value"}'
+fraziym-mcp doctor
+fraziym-mcp install claude|cursor [--write]
+fraziym-mcp version
+```
+
+`serve` speaks MCP (JSON-RPC 2.0) over stdio — point Claude Desktop / Cursor / Zed at it (`fraziym-mcp install claude` prints the ready config). Default group is `all` (axoniz 72 + the xorvoid extras); `--read-only` strips destructive tools and `--no-network` strips network tools. Axoniz's logger writes to stderr, so stdout stays pure protocol.
+
 ## Contract
 
 - `specs()` → OpenAI/OpenRouter `tools` array (function schemas), directly passable to chat-completions.

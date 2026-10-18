@@ -50,6 +50,24 @@ export class Toolbox {
     return this;
   }
 
+  /** New Toolbox with the matching tools only (same handlers/meta). */
+  subset(pred: (schema: ToolFunctionSchema, meta: ToolMeta) => boolean): Toolbox {
+    const out = new Toolbox();
+    for (const t of this.tools.values()) {
+      if (pred(t.schema, t.meta)) out.registerSpec(t.schema, t.handler, t.meta);
+    }
+    return out;
+  }
+
+  /** New Toolbox = this + the tools of `other` that are not already present. */
+  merge(other: Toolbox): Toolbox {
+    const out = this.subset(() => true);
+    for (const t of other.tools.values()) {
+      if (!out.tools.has(t.schema.function.name)) out.registerSpec(t.schema, t.handler, t.meta);
+    }
+    return out;
+  }
+
   has(name: string): boolean {
     return this.tools.has(name);
   }

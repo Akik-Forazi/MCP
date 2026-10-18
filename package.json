@@ -1,6 +1,6 @@
 {
   "name": "@fraziym/mcp",
-  "version": "0.1.0-beta.2",
+  "version": "0.1.0-beta.3",
   "description": "Fraziym MCP — shared agent toolbelt. Hardcoded, importable tool groups that wrap @fraziym/axoniz tool classes (files, shell, web, code, axodex) plus git, for the axo ecosystem's agents.",
   "keywords": [
     "ai",
@@ -39,11 +39,15 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "fraziym-mcp": "./dist/cli/index.js"
+  },
   "directories": {
     "test": "test"
   },
   "files": [
     "dist",
+    "bin",
     "README.md"
   ],
   "scripts": {
@@ -52,7 +56,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --test --experimental-strip-types \"test/**/*.test.ts\"",
     "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\"",
-    "prepublishOnly": "npm run clean && npm run build"
+    "build:exe": "node scripts/build-exe.mjs",
+    "prepublishOnly": "npm run clean && npm run build && npm run build:exe"
   },
   "dependencies": {
     "@fraziym/axoniz": ">=0.1.8-beta.1"
