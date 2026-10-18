@@ -1,0 +1,70 @@
+{
+  "name": "@fraziym/mcp",
+  "version": "0.1.0-beta.1",
+  "description": "Fraziym MCP — shared agent toolbelt. Hardcoded, importable tool groups that wrap @fraziym/axoniz tool classes (files, shell, web, code, axodex) plus git, for the axo ecosystem's agents.",
+  "keywords": [
+    "ai",
+    "agent",
+    "tool-use",
+    "mcp",
+    "tools",
+    "fraziym",
+    "axoniz",
+    "xorvoid"
+  ],
+  "homepage": "https://github.com/Akik-Forazi/MCP#readme",
+  "bugs": {
+    "url": "https://github.com/Akik-Forazi/MCP/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Akik-Forazi/MCP.git"
+  },
+  "license": "MIT",
+  "author": "AKIK FARAJI <akikfaraji@gmail.com> (https://fraziym.com)",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./xorvoid": {
+      "types": "./dist/groups/xorvoid.d.ts",
+      "import": "./dist/groups/xorvoid.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "directories": {
+    "test": "test"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test --experimental-strip-types \"test/**/*.test.ts\"",
+    "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\"",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "dependencies": {
+    "@fraziym/axoniz": ">=0.1.8-beta.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "allowScripts": {
+    "@fraziym/axodex@0.1.5-beta.1": true,
+    "node-llama-cpp@3.22.1": true,
+    "@ladybugdb/core@0.21.1": true,
+    "@scarf/scarf@1.4.0": true,
+    "tree-sitter@0.21.1": true
+  }
+}
