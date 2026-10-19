@@ -64,9 +64,14 @@
     "dev": "tsc -p tsconfig.json --watch",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --test --experimental-strip-types \"test/**/*.test.ts\"",
+    "docs": "node --experimental-strip-types scripts/gen-tool-docs.ts",
+    "mcpb:pack": "npx --yes @anthropic-ai/mcpb pack",
     "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\"",
     "build:exe": "node scripts/build-exe.mjs",
     "prepublishOnly": "npm run clean && npm run build && npm run build:exe"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "@fraziym/axoniz": ">=0.1.8-beta.1"

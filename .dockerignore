@@ -1,0 +1,9 @@
+node_modules
+dist
+bin
+.git
+.github
+*.log
+prove-report.json
+fuzz-report.json
+docs/bench-*.json

@@ -1,0 +1,11 @@
+node_modules
+.git
+.github
+test
+scripts
+src
+prove-report.json
+fuzz-report.json
+docs
+CHANGELOG.md
+CONTRIBUTING.md

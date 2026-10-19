@@ -1,0 +1,41 @@
+name: Bug report
+description: Something broke or misbehaves
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for the report. For security issues, use SECURITY.md instead — never file them publicly.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `fraziym-mcp version`
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Node version, MCP client (Claude Desktop/Cursor/VS Code/...), transport (stdio/HTTP)
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Exact command or client config, then the tool call and what happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: stderr output; `~/.fraziym/mcp/audit.jsonl` tail if audit is enabled
+    validations:
+      required: false

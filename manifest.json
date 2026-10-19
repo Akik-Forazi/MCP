@@ -1,0 +1,24 @@
+{
+  "mcpb_version": "0.1",
+  "name": "fraziym-mcp",
+  "display_name": "Fraziym MCP",
+  "version": "0.1.1-beta.0",
+  "description": "The fastest, most secure MCP toolbelt: 74 tools (files, shell, web, code, git, axodex, memory) behind one process, plus router/fix/brain gateway endpoints.",
+  "author": {
+    "name": "AKIK FARAJI",
+    "url": "https://fraziym.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Akik-Forazi/MCP"
+  },
+  "license": "MIT",
+  "server": {
+    "type": "node",
+    "entry_point": "dist/cli/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/cli/index.js", "serve"]
+    }
+  }
+}

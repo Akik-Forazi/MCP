@@ -1,5 +1,11 @@
 # @fraziym/mcp
 
+[![ci](https://github.com/Akik-Forazi/MCP/actions/workflows/ci.yml/badge.svg)](https://github.com/Akik-Forazi/MCP/actions/workflows/ci.yml)
+[![codeql](https://github.com/Akik-Forazi/MCP/actions/workflows/codeql.yml/badge.svg)](https://github.com/Akik-Forazi/MCP/actions/workflows/codeql.yml)
+[![npm](https://img.shields.io/npm/v/@fraziym/mcp?label=npm)](https://www.npmjs.com/package/@fraziym/mcp)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![node](https://img.shields.io/badge/node-%3E%3D24-brightgreen.svg)](https://nodejs.org)
+
 **The fastest, most secure MCP toolbelt server.** 74 tools (files · shell · web · code · git · axodex · memory) behind one process that cold-starts in ~0.3 s and idles at ~65 MB — with a second, smaller MCP surface on top: the `router/*`, `fix/*` and `brain/*` gateway endpoints.
 
 Ships dual-era MCP: **protocol 2026-07-28** (stateless, per-request `_meta`, `server/discover`) **plus legacy** initialize-based clients (Claude Desktop, Cursor, Zed, …) over stdio or Streamable HTTP. Every claim below is reproducible — the harnesses and raw artifacts live in this repo (`bench` · `prove` · `fuzz`, `test/`, `catalog.json`).
@@ -26,12 +32,14 @@ npx -y @fraziym/mcp serve   # stdio MCP server, 74 tools (+ --router-tools for t
 
 Cold `tools/list` is answered from a build-time catalog (`catalog.json`) — no provider SDK or tool class is imported until its family is first called. Self-startup varies 187–299 ms across runs on this machine; npx competitors are 2–3× slower on a cold cache. Run it yourself: `npm run bench -- --competitors --json`.
 
+Cross-checked against an independent dataset (TechFuelHQ, Windows 11, 2026-08-19, warm caches, 11 popular servers): the same server family measures 0.55–1.9 s ready and 178–422 MB RSS there — so on both methodologies `@fraziym/mcp` is the fastest and lightest general-purpose MCP server measured to date, with 74 tools in a single process where the benchmarked field needs 5–8 servers (~962 MB for a five-server stack) to cover less.
+
 ## Verified correctness & security
 
 | Evidence | Result | Reproduce |
 | --- | --- | --- |
 | YawLabs MCP Compliance (2026-07-28 suite) | **Score 99 · Grade A** — 28/28 required checks pass; 2 optional fails documented below | `npx -y @yawlabs/mcp-compliance test http://127.0.0.1:7777/mcp --auth "Bearer SECRET"` |
-| Own test suite | 89 tests, 88 pass / 1 skip (live-server test) | `npm test` |
+| Own test suite | 91 tests, 90 pass / 1 skip (live-server test) | `npm test` |
 | `prove` — every catalog tool dispatched once in a throwaway workspace | 74 tools: 52 ok · 10 agent-runtime stubs · 6 env-errors (fresh repo / no remote) · 6 desktop-skipped · **0 unreachable** | `npm run prove` → `prove-report.json` |
 | `fuzz` — adversarial path pack vs the workspace jail | 327 cases (27 known CVE-shaped + 300 seeded), **0 escapes**; oversized args rejected by both caps | `npm run fuzz` → `fuzz-report.json` |
 
