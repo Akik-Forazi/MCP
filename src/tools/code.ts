@@ -18,6 +18,7 @@ export function registerCodeTools(tb: Toolbox, ct: CodeTools): void {
     { path: S('Directory path (default ".")'), max_depth: I("Max depth (default 4)") },
     [],
     (args) => ct.tree(argStr(args, "path", "."), argInt(args, "max_depth", 4)),
+    { readOnly: true },
   );
 
   tb.register(
@@ -26,6 +27,7 @@ export function registerCodeTools(tb: Toolbox, ct: CodeTools): void {
     { path: S('Directory path (default ".")') },
     [],
     (args) => ct.analyze(argStr(args, "path", ".")),
+    { readOnly: true },
   );
 
   tb.register(
@@ -34,6 +36,7 @@ export function registerCodeTools(tb: Toolbox, ct: CodeTools): void {
     { path: S("Python file path") },
     ["path"],
     (args) => ct.lint(argStr(args, "path")),
+    { readOnly: true },
   );
 
   tb.register(

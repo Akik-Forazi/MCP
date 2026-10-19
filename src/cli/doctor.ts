@@ -7,8 +7,6 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { toolboxFor } from "./util.ts";
-
 interface Check {
   name: string;
   ok: boolean;
@@ -36,11 +34,12 @@ export async function doctor(): Promise<number> {
   const git = runQuiet("git", ["--version"]);
   checks.push({ name: "git", ok: git !== undefined, detail: git ?? "not found on PATH" });
 
-  const axodex = runQuiet("axodex", ["--help"]);
+  const { axodexInvocation } = await import("../tools/axodex.ts");
+  const inv = axodexInvocation();
   checks.push({
     name: "axodex cli",
-    ok: true,
-    detail: axodex !== undefined ? "on PATH" : "not on PATH (axoniz falls back to global npm)",
+    ok: inv !== null,
+    detail: inv ? `resolved via ${inv.via}` : "not found — npm install -g @fraziym/axodex",
   });
 
   const axonizHome = path.join(os.homedir(), ".axoniz");
@@ -53,17 +52,31 @@ export async function doctor(): Promise<number> {
   }
 
   try {
-    const tb = toolboxFor("axoniz", process.cwd());
-    checks.push({ name: "axoniz group", ok: tb.names().length === 72, detail: `${String(tb.names().length)} tools` });
+    const { LazyToolHost } = await import("../core/host.ts");
+    const ax = new LazyToolHost({ group: "axoniz", workspace: process.cwd() });
+    checks.push({
+      name: "axoniz group",
+      ok: ax.names().length === 72,
+      detail: `${String(ax.names().length)} tools (catalog)`,
+    });
+    const xv = new LazyToolHost({ group: "xorvoid", workspace: process.cwd() });
+    checks.push({
+      name: "xorvoid group",
+      ok: xv.names().length === 25,
+      detail: `${String(xv.names().length)} tools (catalog)`,
+    });
+    const all = new LazyToolHost({ group: "all", workspace: process.cwd() });
+    checks.push({
+      name: "all group",
+      ok: all.names().length === 74,
+      detail: `${String(all.names().length)} tools (catalog)`,
+    });
   } catch (e) {
-    checks.push({ name: "axoniz group", ok: false, detail: e instanceof Error ? e.message : String(e) });
-  }
-
-  try {
-    const tb = toolboxFor("xorvoid", process.cwd());
-    checks.push({ name: "xorvoid group", ok: tb.names().length === 25, detail: `${String(tb.names().length)} tools` });
-  } catch (e) {
-    checks.push({ name: "xorvoid group", ok: false, detail: e instanceof Error ? e.message : String(e) });
+    checks.push({
+      name: "catalog",
+      ok: false,
+      detail: e instanceof Error ? e.message : String(e),
+    });
   }
 
   let allOk = true;

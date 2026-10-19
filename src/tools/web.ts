@@ -18,7 +18,7 @@ export function registerWebTools(tb: Toolbox, wt: WebTools): void {
     { query: S("Search query — paste the exact error message for best results"), max_results: I("Max results (default 5)") },
     ["query"],
     (args) => wt.search(argStr(args, "query"), argInt(args, "max_results", 5)),
-    { network: true },
+    { network: true, readOnly: true },
   );
 
   tb.register(
@@ -27,6 +27,6 @@ export function registerWebTools(tb: Toolbox, wt: WebTools): void {
     { url: S("URL to fetch"), max_chars: I("Max characters to return (default 8000)") },
     ["url"],
     (args) => wt.get(argStr(args, "url"), argInt(args, "max_chars", 8000)),
-    { network: true },
+    { network: true, readOnly: true },
   );
 }

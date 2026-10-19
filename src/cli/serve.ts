@@ -1,135 +1,103 @@
 /**
- * `fraziym-mcp serve` — MCP server over stdio (newline-delimited JSON-RPC 2.0).
+ * `fraziym-mcp serve` — MCP server over stdio (default) or Streamable HTTP.
  *
- * stdout carries protocol only; axoniz's logger already writes to stderr, so
- * INFO banners cannot corrupt the stream. Implements initialize / ping /
- * tools/list / tools/call; unknown methods get JSON-RPC -32601.
+ * Transport shell only: all protocol logic (dual-era negotiation, tools/list,
+ * tools/call, cancellation, logging, server/discover) lives in CoreServer.
+ * stdout carries protocol only; diagnostics go to stderr.
  */
 
 import readline from "node:readline";
 
-import type { Toolbox } from "../core/toolbox.ts";
-import { pkgVersion, toolboxFor, type ToolGroup } from "./util.ts";
+import type { ToolGroup } from "../core/catalog.ts";
+import { LazyToolHost } from "../core/host.ts";
+import { mcpHome } from "../core/home.ts";
+import { GatewayHost } from "../gateway/host.ts";
+import type { ToolHostLike } from "../protocol/server.ts";
+import { CoreServer } from "../protocol/server.ts";
+import { serveHttp } from "../protocol/http.ts";
+import { pkgVersion } from "./version.ts";
 
 export interface ServeOptions {
   workspace: string;
   group: ToolGroup;
   readOnly: boolean;
   noNetwork: boolean;
-}
-
-interface RpcRequest {
-  jsonrpc?: string;
-  id?: unknown;
-  method?: string;
-  params?: Record<string, unknown>;
+  allowOutside?: boolean;
+  audit?: boolean;
+  /** Streamable HTTP instead of stdio. */
+  http?: boolean;
+  port?: number;
+  host?: string;
+  token?: string;
+  /** tools/call burst capacity per client over HTTP; 0 disables. Default 30. */
+  rateLimitBurst?: number;
+  /** Advertise the gateway endpoints (router_*, fix_*, brain_*, …) too. */
+  routerTools?: boolean;
 }
 
 export async function serve(opts: ServeOptions): Promise<void> {
-  let tb: Toolbox = toolboxFor(opts.group, opts.workspace);
-  if (opts.readOnly) tb = tb.subset((_spec, meta) => meta.destructive !== true);
-  if (opts.noNetwork) tb = tb.subset((_spec, meta) => meta.network !== true);
+  const lazy = new LazyToolHost({
+    workspace: opts.workspace,
+    group: opts.group,
+    readOnly: opts.readOnly,
+    noNetwork: opts.noNetwork,
+    guard: { audit: opts.audit ?? true, ...(opts.allowOutside ? { allowOutside: true } : {}) },
+  });
 
-  const version = pkgVersion();
-  const send = (msg: unknown): void => {
-    process.stdout.write(`${JSON.stringify(msg)}\n`);
-  };
+  const host: ToolHostLike = opts.routerTools
+    ? new GatewayHost(lazy, {
+        home: mcpHome(),
+        guard: { audit: opts.audit ?? true, ...(opts.allowOutside ? { allowOutside: true } : {}) },
+      })
+    : lazy;
 
-  const handleLine = async (line: string): Promise<void> => {
-    const trimmed = line.trim();
-    if (!trimmed) return;
+  const server = new CoreServer({
+    host,
+    version: pkgVersion(),
+    log: (line) => process.stderr.write(`${line}\n`),
+  });
 
-    let req: RpcRequest;
-    try {
-      req = JSON.parse(trimmed) as RpcRequest;
-    } catch {
-      send({ jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } });
-      return;
-    }
+  const toolCount = host.names().length;
 
-    const { id, method } = req;
-    const params = req.params ?? {};
-    const isNotification = id === undefined || id === null;
-
-    try {
-      switch (method) {
-        case "initialize":
-          send({
-            jsonrpc: "2.0",
-            id,
-            result: {
-              protocolVersion:
-                typeof params.protocolVersion === "string" ? params.protocolVersion : "2025-06-18",
-              capabilities: { tools: { listChanged: false } },
-              serverInfo: { name: "fraziym-mcp", version },
-            },
-          });
-          break;
-
-        case "notifications/initialized":
-        case "notifications/cancelled":
-          break;
-
-        case "ping":
-          if (!isNotification) send({ jsonrpc: "2.0", id, result: {} });
-          break;
-
-        case "tools/list":
-          send({
-            jsonrpc: "2.0",
-            id,
-            result: {
-              tools: tb.specs().map((s) => ({
-                name: s.function.name,
-                description: s.function.description,
-                inputSchema: s.function.parameters,
-              })),
-            },
-          });
-          break;
-
-        case "tools/call": {
-          const name = typeof params.name === "string" ? params.name : "";
-          const args =
-            params.arguments && typeof params.arguments === "object"
-              ? (params.arguments as Record<string, unknown>)
-              : {};
-          const text = await tb.call(name, args);
-          send({
-            jsonrpc: "2.0",
-            id,
-            result: { content: [{ type: "text", text }], isError: text.startsWith("[ERROR]") },
-          });
-          break;
-        }
-
-        default:
-          if (!isNotification) {
-            send({
-              jsonrpc: "2.0",
-              id,
-              error: { code: -32601, message: `Method not found: ${String(method)}` },
-            });
-          }
-      }
-    } catch (e) {
-      if (!isNotification) {
-        send({
-          jsonrpc: "2.0",
-          id,
-          error: { code: -32603, message: e instanceof Error ? e.message : String(e) },
-        });
-      }
-    }
-  };
+  if (opts.http) {
+    const rateLimitBurst = opts.rateLimitBurst ?? 30;
+    const handle = await serveHttp({
+      server,
+      port: opts.port ?? 7777,
+      host: opts.host ?? "127.0.0.1",
+      token: opts.token,
+      rateLimit: rateLimitBurst > 0 ? { burst: rateLimitBurst, perSecond: Math.max(1, rateLimitBurst / 2) } : false,
+      log: (line) => process.stderr.write(`${line}\n`),
+    });
+    process.stderr.write(
+      `[fraziym-mcp] serving ${String(toolCount)} tools (group: ${opts.group}) over Streamable HTTP ` +
+        `at ${handle.url} (protocol 2026-07-28 + legacy; sessions: none)\n`,
+    );
+    await new Promise<void>((resolve) => {
+      const shutdown = (): void => {
+        handle.close().then(
+          () => resolve(),
+          () => resolve(),
+        );
+      };
+      process.once("SIGINT", shutdown);
+      process.once("SIGTERM", shutdown);
+      process.once("SIGBREAK", shutdown);
+    });
+    return;
+  }
 
   const rl = readline.createInterface({ input: process.stdin, terminal: false });
   rl.on("line", (line) => {
-    void handleLine(line);
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    void server.handleLine(trimmed).then((response) => {
+      if (response !== null) process.stdout.write(`${response}\n`);
+    });
   });
 
   process.stderr.write(
-    `[fraziym-mcp] serving ${String(tb.names().length)} tools (group: ${opts.group}) over stdio\n`,
+    `[fraziym-mcp] serving ${String(toolCount)} tools (group: ${opts.group}) over stdio (lazy catalog)\n`,
   );
 
   await new Promise<void>((resolve) => {

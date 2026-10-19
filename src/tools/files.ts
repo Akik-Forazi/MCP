@@ -28,6 +28,7 @@ export function registerFileTools(tb: Toolbox, ft: FileTools, opts: FileToolsOpt
       const end = args.end_line === undefined || args.end_line === null ? null : argInt(args, "end_line", 1);
       return ft.read(argStr(args, "path"), start, end);
     },
+    { readOnly: true },
   );
 
   tb.register(
@@ -83,6 +84,7 @@ export function registerFileTools(tb: Toolbox, ft: FileTools, opts: FileToolsOpt
     { path: S('Directory path (default ".")') },
     [],
     (args) => ft.listDir(argStr(args, "path", ".")),
+    { readOnly: true },
   );
 
   tb.register(
@@ -91,6 +93,7 @@ export function registerFileTools(tb: Toolbox, ft: FileTools, opts: FileToolsOpt
     { pattern: S("Glob pattern"), path: S('Base directory (default ".")') },
     ["pattern"],
     (args) => ft.search(argStr(args, "path", "."), argStr(args, "pattern")),
+    { readOnly: true },
   );
 
   if (extras) {
@@ -113,6 +116,7 @@ export function registerFileTools(tb: Toolbox, ft: FileTools, opts: FileToolsOpt
           args.case_sensitive === undefined ? true : args.case_sensitive === true || args.case_sensitive === "true",
           argInt(args, "max_results", 50),
         ),
+      { readOnly: true },
     );
   }
 }

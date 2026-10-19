@@ -5,3 +5,5 @@ bin/
 .DS_Store
 .env
 .sqlite
+prove-report.json
+fuzz-report.json

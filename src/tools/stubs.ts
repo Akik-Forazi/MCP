@@ -10,6 +10,20 @@ import type { Toolbox } from "../core/toolbox.ts";
 const S = (description: string) => ({ type: "string", description });
 const I = (description: string) => ({ type: "integer", description });
 
+/** The 10 agent-runtime tool names (used by the lazy host's family mapping). */
+export const STUB_TOOL_NAMES = [
+  "swarm_spawn",
+  "shadow_step",
+  "war_room",
+  "goal_create",
+  "goal_list",
+  "goal_kr_add",
+  "goal_action_add",
+  "goal_update_score",
+  "goal_action_complete",
+  "goal_report",
+] as const;
+
 function stub(name: string): string {
   return `[ERROR] ${name}: requires the axoniz agent runtime (not standalone-exportable from @fraziym/axoniz yet). Use the axoniz agent/CLI for this capability.`;
 }

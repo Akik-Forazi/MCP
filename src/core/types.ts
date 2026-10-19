@@ -10,6 +10,7 @@ export interface JsonSchemaProp {
   type?: string;
   description?: string;
   default?: unknown;
+  maxLength?: number;
 }
 
 export interface ToolFunctionSchema {
@@ -27,6 +28,8 @@ export interface ToolFunctionSchema {
 
 /** Capability flags used by routers/agents to scope tools per role. */
 export interface ToolMeta {
+  /** Never modifies state (published as MCP `readOnlyHint`/`destructiveHint`). */
+  readOnly?: boolean;
   /** Can modify or delete state (files, processes). */
   destructive?: boolean;
   /** Reaches the network. */

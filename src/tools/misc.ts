@@ -4,15 +4,15 @@
  */
 
 import type { UnifiedMemory } from "@fraziym/axoniz/memory";
-import type { AxodexTools } from "@fraziym/axoniz/tools";
 
 import { argStr } from "../core/args.ts";
 import type { Toolbox } from "../core/toolbox.ts";
+import type { AxodexRunner } from "./axodex.ts";
 
 const S = (description: string) => ({ type: "string", description });
 
 export interface MiscToolDeps {
-  axodex: AxodexTools;
+  axodex: AxodexRunner;
   mem: UnifiedMemory;
 }
 
@@ -37,19 +37,15 @@ function toStr(v: unknown): string {
   }
 }
 
-export function registerMiscTools(tb: Toolbox, deps: MiscToolDeps): void {
-  const handlers = deps.mem.as_tool_map() as unknown as Record<
-    string,
-    (args: Record<string, unknown>) => unknown
-  >;
-  const palaceSearch = handlers["palace_search"];
-
+/** get_time + done — zero dependencies, safe to build without any axoniz class. */
+export function registerProtocolTools(tb: Toolbox): void {
   tb.register(
     "get_time",
     "Get the current date and/or time (useful for \"today\", deadlines, scheduling).",
     { query: S('One of "time", "date", "day", "year", or "all" (default)') },
     [],
     (args) => timeNow(argStr(args, "query", "all")),
+    { readOnly: true },
   );
 
   tb.register(
@@ -61,7 +57,18 @@ export function registerMiscTools(tb: Toolbox, deps: MiscToolDeps): void {
       const r = argStr(args, "result");
       return r ? `[done] ${r}` : "[done] (no summary provided)";
     },
+    { readOnly: true },
   );
+}
+
+export function registerMiscTools(tb: Toolbox, deps: MiscToolDeps): void {
+  const handlers = deps.mem.as_tool_map() as unknown as Record<
+    string,
+    (args: Record<string, unknown>) => unknown
+  >;
+  const palaceSearch = handlers["palace_search"];
+
+  registerProtocolTools(tb);
 
   tb.register(
     "absolute_query",
@@ -76,5 +83,6 @@ export function registerMiscTools(tb: Toolbox, deps: MiscToolDeps): void {
       ]);
       return `══ Axodex (code graph) ══\n${toStr(codeText)}\n\n══ Palace (long-term memory) ══\n${toStr(memText)}`;
     },
+    { readOnly: true },
   );
 }

@@ -56,7 +56,18 @@ internal static class Program
 
         Thread tIn = new Thread(delegate()
         {
-            try { stdin.CopyTo(child.StandardInput.BaseStream); } catch { }
+            try
+            {
+                Stream childIn = child.StandardInput.BaseStream;
+                byte[] buf = new byte[8192];
+                int n;
+                while ((n = stdin.Read(buf, 0, buf.Length)) > 0)
+                {
+                    childIn.Write(buf, 0, n);
+                    childIn.Flush();
+                }
+            }
+            catch { }
             try { child.StandardInput.BaseStream.Close(); } catch { }
         });
         tIn.IsBackground = true;
@@ -64,7 +75,18 @@ internal static class Program
 
         Thread tOut = new Thread(delegate()
         {
-            try { child.StandardOutput.BaseStream.CopyTo(stdout); } catch { }
+            try
+            {
+                Stream childOut = child.StandardOutput.BaseStream;
+                byte[] buf = new byte[8192];
+                int n;
+                while ((n = childOut.Read(buf, 0, buf.Length)) > 0)
+                {
+                    stdout.Write(buf, 0, n);
+                    stdout.Flush();
+                }
+            }
+            catch { }
             try { stdout.Flush(); } catch { }
         });
         tOut.IsBackground = true;
@@ -72,7 +94,18 @@ internal static class Program
 
         Thread tErr = new Thread(delegate()
         {
-            try { child.StandardError.BaseStream.CopyTo(stderr); } catch { }
+            try
+            {
+                Stream childErr = child.StandardError.BaseStream;
+                byte[] buf = new byte[8192];
+                int n;
+                while ((n = childErr.Read(buf, 0, buf.Length)) > 0)
+                {
+                    stderr.Write(buf, 0, n);
+                    stderr.Flush();
+                }
+            }
+            catch { }
             try { stderr.Flush(); } catch { }
         });
         tErr.IsBackground = true;

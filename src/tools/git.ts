@@ -1,14 +1,19 @@
 /**
- * Git tools — shell-backed git, scoped to the workspace.
+ * Git tools — argv-exact git via `execFile`, scoped to the workspace.
+ *
+ * Nothing here goes through a shell: commands are built as real argument
+ * arrays, so commit messages, paths and ref names can never break out
+ * (CVE-2025-68144-style argument injection is structurally impossible).
+ * Free-form names (branches, remotes) are additionally validated and may
+ * not start with "-".
  *
  * mode "core": read-only trio (git_status, git_diff, git_log) — xorvoidTools default.
  * mode "full": the complete axoniz 10-tool git surface
  *              (+ add/commit/branch/checkout/push/pull/stash).
  */
 
-import type { ShellTools } from "@fraziym/axoniz/tools";
-
 import { argInt, argStr } from "../core/args.ts";
+import { execCapture } from "../core/exec.ts";
 import type { Toolbox } from "../core/toolbox.ts";
 
 const S = (description: string) => ({ type: "string", description });
@@ -16,17 +21,44 @@ const I = (description: string) => ({ type: "integer", description });
 
 export type GitToolsMode = "core" | "full";
 
-function q(s: string): string {
-  return `"${s.replace(/"/g, '\\"')}"`;
+const GIT_ENV: NodeJS.ProcessEnv = {
+  ...process.env,
+  GIT_TERMINAL_PROMPT: "0",
+  GIT_PAGER: "cat",
+};
+
+/** Conservative ref/remote-name validation: no leading dash, no shell-ish metacharacters. */
+function refName(value: string, what: string): string {
+  const v = value.trim();
+  if (!v) throw new Error(`${what} must not be empty`);
+  if (v.length > 255) throw new Error(`${what} is too long`);
+  if (v.startsWith("-")) throw new Error(`${what} must not start with "-"`);
+  if (!/^[A-Za-z0-9._/-]+$/.test(v)) throw new Error(`${what} contains unsupported characters`);
+  if (v.includes("..") || v.endsWith("/") || v.endsWith(".") || v.endsWith(".lock")) {
+    throw new Error(`${what} is not a valid git name`);
+  }
+  return v;
 }
 
-export function registerGitTools(tb: Toolbox, st: ShellTools, mode: GitToolsMode = "core"): void {
+async function runGit(workspace: string, argv: string[]): Promise<string> {
+  const res = await execCapture("git", argv, { cwd: workspace, env: GIT_ENV, timeoutMs: 120_000 });
+  if (res.spawnError === "ENOENT") return "[ERROR] git not found on PATH";
+  if (res.timedOut) return "[ERROR] git timed out after 120s";
+  if (res.code !== 0) {
+    const msg = (res.stderr || res.stdout).trim() || `exit code ${res.code}`;
+    return `[ERROR] git ${argv[0] ?? ""}: ${msg}`;
+  }
+  return res.stdout.trim() || res.stderr.trim() || "(no output)";
+}
+
+export function registerGitTools(tb: Toolbox, workspace: string, mode: GitToolsMode = "core"): void {
   tb.register(
     "git_status",
     "Show git working-tree status (short + branch).",
     {},
     [],
-    () => st.run("git status --short --branch"),
+    () => runGit(workspace, ["status", "--short", "--branch"]),
+    { readOnly: true },
   );
 
   tb.register(
@@ -38,12 +70,13 @@ export function registerGitTools(tb: Toolbox, st: ShellTools, mode: GitToolsMode
     },
     [],
     (args) => {
-      let cmd = "git diff";
-      if (args.staged === true || args.staged === "true") cmd += " --staged";
+      const argv = ["diff"];
+      if (args.staged === true || args.staged === "true") argv.push("--staged");
       const p = argStr(args, "path");
-      if (p) cmd += ` -- ${q(p)}`;
-      return st.run(cmd);
+      if (p) argv.push("--", p);
+      return runGit(workspace, argv);
     },
+    { readOnly: true },
   );
 
   tb.register(
@@ -51,7 +84,11 @@ export function registerGitTools(tb: Toolbox, st: ShellTools, mode: GitToolsMode
     "Recent commit history (one line per commit).",
     { count: I("Number of commits (default 10)") },
     [],
-    (args) => st.run(`git log --oneline -n ${argInt(args, "count", 10)}`),
+    (args) => {
+      const n = Math.min(Math.max(argInt(args, "count", 10), 1), 1000);
+      return runGit(workspace, ["log", "--oneline", "-n", String(n)]);
+    },
+    { readOnly: true },
   );
 
   if (mode !== "full") return;
@@ -61,7 +98,7 @@ export function registerGitTools(tb: Toolbox, st: ShellTools, mode: GitToolsMode
     "Stage files for commit.",
     { path: S('Path to stage (default ".")') },
     [],
-    (args) => st.run(`git add -- ${q(argStr(args, "path", "."))}`),
+    (args) => runGit(workspace, ["add", "--", argStr(args, "path", ".")]),
   );
 
   tb.register(
@@ -69,21 +106,26 @@ export function registerGitTools(tb: Toolbox, st: ShellTools, mode: GitToolsMode
     "Create a git commit.",
     { message: S("Commit message") },
     ["message"],
-    (args) => st.run(`git commit -m ${q(argStr(args, "message"))}`),
+    (args) => runGit(workspace, ["commit", "-m", argStr(args, "message")]),
     { destructive: true },
   );
 
-  tb.register("git_branch", "List git branches.", {}, [], () => st.run("git branch --list"));
+  tb.register("git_branch", "List git branches.", {}, [], () => runGit(workspace, ["branch", "--list"]), {
+    readOnly: true,
+  });
 
   tb.register(
     "git_checkout",
     "Switch/create branch.",
     { branch: S("Branch name"), create: { type: "boolean", description: "Create the branch (-b)" } },
     ["branch"],
-    (args) =>
-      st.run(
-        `git checkout ${args.create === true || args.create === "true" ? "-b " : ""}${q(argStr(args, "branch"))}`,
-      ),
+    (args) => {
+      const branch = refName(argStr(args, "branch"), "branch");
+      const argv = ["checkout"];
+      if (args.create === true || args.create === "true") argv.push("-b");
+      argv.push(branch);
+      return runGit(workspace, argv);
+    },
     { destructive: true },
   );
 
@@ -93,19 +135,22 @@ export function registerGitTools(tb: Toolbox, st: ShellTools, mode: GitToolsMode
     { remote: S("Remote (default: current)"), branch: S("Branch (default: current)") },
     [],
     (args) => {
-      const r = argStr(args, "remote");
-      const b = argStr(args, "branch");
-      return st.run(`git push${r ? ` ${q(r)}` : ""}${b ? ` ${q(b)}` : ""}`);
+      const argv = ["push"];
+      const r = argStr(args, "remote").trim();
+      const b = argStr(args, "branch").trim();
+      if (r) argv.push(refName(r, "remote"));
+      if (b) argv.push(refName(b, "branch"));
+      return runGit(workspace, argv);
     },
     { destructive: true, network: true },
   );
 
-  tb.register("git_pull", "Pull from remote.", {}, [], () => st.run("git pull"), {
+  tb.register("git_pull", "Pull from remote.", {}, [], () => runGit(workspace, ["pull"]), {
     destructive: true,
     network: true,
   });
 
-  tb.register("git_stash", "Stash uncommitted changes.", {}, [], () => st.run("git stash"), {
+  tb.register("git_stash", "Stash uncommitted changes.", {}, [], () => runGit(workspace, ["stash"]), {
     destructive: true,
   });
 }

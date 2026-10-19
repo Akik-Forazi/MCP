@@ -1,0 +1,1770 @@
+{
+  "version": "0.1.1-beta.0",
+  "tools": [
+    {
+      "name": "file_read",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Read a file with line numbers. Optional start_line/end_line range.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "File path (relative to workspace)",
+            "maxLength": 4096
+          },
+          "start_line": {
+            "type": "integer",
+            "description": "First line (1-based)"
+          },
+          "end_line": {
+            "type": "integer",
+            "description": "Last line"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "file_write",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Write/overwrite a file (auto-creates directories).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "File path",
+            "maxLength": 4096
+          },
+          "content": {
+            "type": "string",
+            "description": "Full file content"
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "file_edit",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Find-and-replace inside a file (whitespace-tolerant, shows diff).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "File path",
+            "maxLength": 4096
+          },
+          "old": {
+            "type": "string",
+            "description": "Exact text to find"
+          },
+          "new": {
+            "type": "string",
+            "description": "Replacement text"
+          }
+        },
+        "required": [
+          "path",
+          "old",
+          "new"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "file_append",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Append text to the end of a file.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "File path",
+            "maxLength": 4096
+          },
+          "content": {
+            "type": "string",
+            "description": "Text to append"
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "file_delete",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Delete a file or directory.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "File or directory path",
+            "maxLength": 4096
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "file_list",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "List directory contents.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Directory path (default \".\")",
+            "maxLength": 4096
+          }
+        },
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "file_search",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Find files matching a glob pattern (e.g. *.ts, **/*.json).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "description": "Glob pattern"
+          },
+          "path": {
+            "type": "string",
+            "description": "Base directory (default \".\")",
+            "maxLength": 4096
+          }
+        },
+        "required": [
+          "pattern"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "shell_run",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Run a shell/CMD command in the workspace. Returns exit code, stdout, stderr.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "Command line to run"
+          },
+          "timeout": {
+            "type": "integer",
+            "description": "Timeout in seconds (default 60)"
+          }
+        },
+        "required": [
+          "command"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "shell_python",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Execute Python code and capture output (requires a python interpreter).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Python source to execute"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "web_search",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Search the web via DuckDuckGo. Returns titles, URLs and snippets.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query — paste the exact error message for best results"
+          },
+          "max_results": {
+            "type": "integer",
+            "description": "Max results (default 5)"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "meta": {
+        "network": true,
+        "readOnly": true
+      }
+    },
+    {
+      "name": "web_get",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Fetch a URL and return its readable text content (HTML stripped).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "URL to fetch"
+          },
+          "max_chars": {
+            "type": "integer",
+            "description": "Max characters to return (default 8000)"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "meta": {
+        "network": true,
+        "readOnly": true
+      }
+    },
+    {
+      "name": "code_tree",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Show a file/directory tree of the workspace.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Directory path (default \".\")",
+            "maxLength": 4096
+          },
+          "max_depth": {
+            "type": "integer",
+            "description": "Max depth (default 4)"
+          }
+        },
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "code_analyze",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "List classes/functions found in Python files under a path.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Directory path (default \".\")",
+            "maxLength": 4096
+          }
+        },
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "code_lint",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Lint a Python file with flake8.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Python file path",
+            "maxLength": 4096
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "code_format",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Format a Python file with black.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Python file path",
+            "maxLength": 4096
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "git_status",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Show git working-tree status (short + branch).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "git_diff",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Show unstaged or staged changes.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "staged": {
+            "type": "boolean",
+            "description": "Show staged (--staged) diff instead"
+          },
+          "path": {
+            "type": "string",
+            "description": "Limit the diff to this path",
+            "maxLength": 4096
+          }
+        },
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "git_log",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Recent commit history (one line per commit).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Number of commits (default 10)"
+          }
+        },
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "git_add",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Stage files for commit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to stage (default \".\")",
+            "maxLength": 4096
+          }
+        },
+        "required": []
+      },
+      "meta": {}
+    },
+    {
+      "name": "git_commit",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Create a git commit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Commit message"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "git_branch",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "List git branches.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "git_checkout",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Switch/create branch.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "branch": {
+            "type": "string",
+            "description": "Branch name"
+          },
+          "create": {
+            "type": "boolean",
+            "description": "Create the branch (-b)"
+          }
+        },
+        "required": [
+          "branch"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "git_push",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Push to remote.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "remote": {
+            "type": "string",
+            "description": "Remote (default: current)"
+          },
+          "branch": {
+            "type": "string",
+            "description": "Branch (default: current)"
+          }
+        },
+        "required": []
+      },
+      "meta": {
+        "destructive": true,
+        "network": true
+      }
+    },
+    {
+      "name": "git_pull",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Pull from remote.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "meta": {
+        "destructive": true,
+        "network": true
+      }
+    },
+    {
+      "name": "git_stash",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Stash uncommitted changes.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "axodex_query",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Semantic search across the codebase knowledge graph (concepts, flows).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Concept or question to search for"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Max hits (default 10)"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "axodex_context",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Get architectural context for a named symbol (callers, callees, process).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Symbol name"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "axodex_impact",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Blast-radius analysis: what breaks if this symbol changes.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Symbol to analyze"
+          },
+          "direction": {
+            "type": "string",
+            "description": "\"upstream\" (default) or \"downstream\""
+          }
+        },
+        "required": [
+          "target"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "axodex_smart_read",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Read a symbol with its graph context instead of raw file text.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "description": "Symbol name"
+          }
+        },
+        "required": [
+          "symbol"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "axodex_status",
+      "groups": [
+        "axoniz",
+        "xorvoid"
+      ],
+      "description": "Index freshness / stats for the workspace's code graph.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "axodex_detect_changes",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Verify which symbols and execution flows are affected by uncommitted edits.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "axodex_analyze",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Force a full refresh of the workspace's code graph index.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "meta": {}
+    },
+    {
+      "name": "mouse_move",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Move the mouse cursor to absolute screen coordinates.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "integer",
+            "description": "X coordinate"
+          },
+          "y": {
+            "type": "integer",
+            "description": "Y coordinate"
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "mouse_click",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Click the mouse, optionally moving to absolute coordinates first.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "integer",
+            "description": "X coordinate (optional)"
+          },
+          "y": {
+            "type": "integer",
+            "description": "Y coordinate (optional)"
+          },
+          "button": {
+            "type": "string",
+            "description": "Button: \"left\" (default), \"right\", \"middle\""
+          }
+        },
+        "required": []
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "key_type",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Type a text string via the keyboard.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Text to type"
+          },
+          "interval": {
+            "type": "number",
+            "description": "Seconds between keystrokes (default 0.02)"
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "key_press",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Press a single key or hotkey combo (e.g. \"enter\", \"ctrl+c\").",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Key or combo name"
+          }
+        },
+        "required": [
+          "key"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "screen_size",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Get the primary screen resolution.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "meta": {}
+    },
+    {
+      "name": "screen_capture",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Capture a screenshot of the screen to a PNG file.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "description": "Output filename (default \"screenshot.png\")",
+            "maxLength": 4096
+          }
+        },
+        "required": []
+      },
+      "meta": {}
+    },
+    {
+      "name": "screen_find",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Find text on screen via OCR; returns its coordinates.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Text to look for"
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "meta": {}
+    },
+    {
+      "name": "memory_save",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Save a key-value pair to long-term memory.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Memory key"
+          },
+          "value": {
+            "type": "string",
+            "description": "Value to remember"
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "memory_get",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Retrieve a value from long-term memory by key.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Memory key"
+          }
+        },
+        "required": [
+          "key"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "memory_list",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "List all keys stored in long-term memory.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "palace_search",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Semantic search across the palace. Use before answering questions about past decisions, projects, or context. Returns verbatim stored content.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query"
+          },
+          "wing": {
+            "type": "string",
+            "description": "Wing filter (optional)"
+          },
+          "room": {
+            "type": "string",
+            "description": "Room filter (optional)"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Max results (default 5)"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "palace_store",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Save verbatim content into the palace. wing=domain (project/person/topic), room=sub-topic.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "wing": {
+            "type": "string",
+            "description": "Domain (e.g. project name)"
+          },
+          "room": {
+            "type": "string",
+            "description": "Sub-topic"
+          },
+          "content": {
+            "type": "string",
+            "description": "Verbatim content to store"
+          }
+        },
+        "required": [
+          "wing",
+          "room",
+          "content"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "palace_context",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Load palace wake-up context: total drawers, wings overview. Call at start of session.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "palace_wings",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "List all palace wings and drawer counts.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "palace_rooms",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "List rooms in a wing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "wing": {
+            "type": "string",
+            "description": "Wing name"
+          }
+        },
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "palace_check_dup",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Check if content already exists before storing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "Content to check"
+          },
+          "threshold": {
+            "type": "number",
+            "description": "Similarity threshold 0-1 (default 0.9)"
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "palace_delete",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Delete a palace drawer by ID.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "drawer_id": {
+            "type": "string",
+            "description": "Drawer ID"
+          }
+        },
+        "required": [
+          "drawer_id"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "palace_graph_traverse",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Walk palace graph from a room — find connected ideas across wings.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "start_room": {
+            "type": "string",
+            "description": "Room to start from"
+          },
+          "max_hops": {
+            "type": "integer",
+            "description": "Hops to follow (default 2)"
+          }
+        },
+        "required": [
+          "start_room"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "palace_find_tunnels",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Find rooms that bridge two wings.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "wing_a": {
+            "type": "string",
+            "description": "First wing"
+          },
+          "wing_b": {
+            "type": "string",
+            "description": "Second wing"
+          }
+        },
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "palace_graph_stats",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Palace graph overview: rooms, tunnels, edges.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "kg_add",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Add a temporal fact: subject → predicate → object. E.g. ('Max','loves','chess',valid_from='2025-01-01')",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "description": "Entity"
+          },
+          "predicate": {
+            "type": "string",
+            "description": "Relationship"
+          },
+          "obj": {
+            "type": "string",
+            "description": "Connected entity"
+          },
+          "valid_from": {
+            "type": "string",
+            "description": "When true (YYYY-MM-DD)"
+          },
+          "source": {
+            "type": "string",
+            "description": "Source reference"
+          }
+        },
+        "required": [
+          "subject",
+          "predicate",
+          "obj"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "kg_query",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Query knowledge graph for an entity's facts. direction: outgoing/incoming/both.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "entity": {
+            "type": "string",
+            "description": "Entity name"
+          },
+          "as_of": {
+            "type": "string",
+            "description": "Date filter YYYY-MM-DD"
+          },
+          "direction": {
+            "type": "string",
+            "description": "outgoing/incoming/both"
+          }
+        },
+        "required": [
+          "entity"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "kg_invalidate",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Mark a fact as no longer true.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "predicate": {
+            "type": "string"
+          },
+          "obj": {
+            "type": "string"
+          },
+          "ended": {
+            "type": "string",
+            "description": "When it ended YYYY-MM-DD"
+          }
+        },
+        "required": [
+          "subject",
+          "predicate",
+          "obj"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "kg_timeline",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Chronological timeline of facts.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "entity": {
+            "type": "string",
+            "description": "Entity name (optional)"
+          }
+        },
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "kg_stats",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Knowledge graph statistics.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "diary_write",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Write a diary entry in AAAK format. Your personal journal across sessions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "entry": {
+            "type": "string",
+            "description": "AAAK-format diary entry"
+          },
+          "topic": {
+            "type": "string",
+            "description": "Topic tag (optional)"
+          }
+        },
+        "required": [
+          "entry"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "diary_read",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Read your recent diary entries.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "last_n": {
+            "type": "integer",
+            "description": "Number of entries (default 10)"
+          }
+        },
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "get_time",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Get the current date and/or time (useful for \"today\", deadlines, scheduling).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "One of \"time\", \"date\", \"day\", \"year\", or \"all\" (default)"
+          }
+        },
+        "required": []
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "done",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Call when the task is fully complete; provide a summary of what was accomplished.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "Full summary of everything accomplished"
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "absolute_query",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Absolute query: searches BOTH the codebase (via axodex) AND long-term memory (via palace), returning combined results.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Concept, symbol, or question to search for"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "swarm_spawn",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Spawn parallel worker agents in isolated git worktrees.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "Task for the swarm"
+          },
+          "workers": {
+            "type": "integer",
+            "description": "Worker count (default 4)"
+          },
+          "base_branch": {
+            "type": "string",
+            "description": "Base branch to fork from"
+          }
+        },
+        "required": [
+          "task"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "shadow_step",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Run a shadow verification step (propose → test → measure diff).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "Task to verify"
+          },
+          "test_cmd": {
+            "type": "string",
+            "description": "Command that decides pass/fail"
+          }
+        },
+        "required": [
+          "task"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "war_room",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Convene the multi-agent war room to debate a decision.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "topic": {
+            "type": "string",
+            "description": "Topic to debate"
+          }
+        },
+        "required": [
+          "topic"
+        ]
+      },
+      "meta": {}
+    },
+    {
+      "name": "goal_create",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Create a new goal.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Goal title"
+          },
+          "description": {
+            "type": "string",
+            "description": "Goal description"
+          },
+          "deadline": {
+            "type": "string",
+            "description": "Deadline (ISO date)"
+          },
+          "priority": {
+            "type": "string",
+            "description": "Priority: \"low\" | \"medium\" | \"high\""
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "goal_list",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "List goals.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Filter by status (e.g. \"active\", \"done\")"
+          }
+        },
+        "required": []
+      },
+      "meta": {}
+    },
+    {
+      "name": "goal_kr_add",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Add a key result to a goal.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "goal_id": {
+            "type": "string",
+            "description": "Target goal id"
+          },
+          "title": {
+            "type": "string",
+            "description": "Key result title"
+          },
+          "target": {
+            "type": "string",
+            "description": "Target value/description"
+          }
+        },
+        "required": [
+          "goal_id",
+          "title"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "goal_action_add",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Schedule an action under a key result.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "kr_id": {
+            "type": "string",
+            "description": "Target key-result id"
+          },
+          "title": {
+            "type": "string",
+            "description": "Action title"
+          },
+          "scheduled_date": {
+            "type": "string",
+            "description": "Scheduled date (ISO)"
+          }
+        },
+        "required": [
+          "kr_id",
+          "title"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "goal_update_score",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Update a goal's progress score.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "goal_id": {
+            "type": "string",
+            "description": "Target goal id"
+          },
+          "score": {
+            "type": "number",
+            "description": "Progress score (0-100)"
+          }
+        },
+        "required": [
+          "goal_id",
+          "score"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "goal_action_complete",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Mark a goal action complete.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "description": "Action id to complete"
+          }
+        },
+        "required": [
+          "action_id"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "goal_report",
+      "groups": [
+        "axoniz"
+      ],
+      "description": "Generate a goal progress report.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "goal_id": {
+            "type": "string",
+            "description": "Goal id (optional — all goals when omitted)"
+          }
+        },
+        "required": []
+      },
+      "meta": {}
+    },
+    {
+      "name": "file_patch",
+      "groups": [
+        "xorvoid"
+      ],
+      "description": "Apply a unified diff patch to a file.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "File path",
+            "maxLength": 4096
+          },
+          "patch": {
+            "type": "string",
+            "description": "Unified diff hunk text"
+          }
+        },
+        "required": [
+          "path",
+          "patch"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "file_grep",
+      "groups": [
+        "xorvoid"
+      ],
+      "description": "Search file contents for a text/regex pattern (like ripgrep).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "description": "Regex or literal to search for"
+          },
+          "path": {
+            "type": "string",
+            "description": "Base directory (default \".\")",
+            "maxLength": 4096
+          },
+          "file_pattern": {
+            "type": "string",
+            "description": "Glob filter for files (default \"*\")"
+          },
+          "case_sensitive": {
+            "type": "boolean",
+            "description": "Case-sensitive match (default true)"
+          },
+          "max_results": {
+            "type": "integer",
+            "description": "Max matched lines (default 50)"
+          }
+        },
+        "required": [
+          "pattern"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    }
+  ]
+}

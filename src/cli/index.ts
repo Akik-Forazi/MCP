@@ -2,26 +2,44 @@
 /**
  * fraziym-mcp — the @fraziym/mcp toolbelt CLI.
  * Run `fraziym-mcp help` for the command list.
+ *
+ * Fast paths matter here: `version`, `help`, `tools` and `serve` startup must
+ * never import the tool runtime (axoniz, memory, computer). Heavy modules are
+ * loaded with dynamic `import()` only in the branches that need them.
  */
 
 import process from "node:process";
 
-import { doctor } from "./doctor.ts";
-import { installClient, type InstallClient } from "./install.ts";
-import { serve } from "./serve.ts";
-import { pkgVersion, toolboxFor, type ToolGroup } from "./util.ts";
+import type { ToolGroup } from "../core/catalog.ts";
 
 const HELP = `fraziym-mcp — @fraziym/mcp toolbelt CLI
 
   fraziym-mcp serve [--group axoniz|xorvoid|all] [--workspace PATH]
-                    [--read-only] [--no-network]
-      MCP server over stdio (JSON-RPC 2.0) for Claude Desktop, Cursor, Zed, ...
+                    [--read-only] [--no-network] [--allow-outside] [--no-audit]
+                    [--http] [--port 7777] [--host 127.0.0.1] [--token SECRET]
+                    [--rate-limit 30|off] [--router-tools]
+      MCP server over stdio (default) or Streamable HTTP (protocol 2026-07-28
+      stateless + legacy initialize; Origin-checked, loopback-bound by default,
+      tools/call rate-limited over HTTP). --router-tools additionally
+      advertises the gateway endpoints (router_*, fix_*, brain_*, ...).
 
   fraziym-mcp tools [--group ...] [--json]
-      List the tools in a group (default: all).
+      List the tools in a group (default: all). Answered from the catalog.
+
+  fraziym-mcp bench [--runs 3] [--competitors] [--json]
+      Measure cold-start (spawn → initialize), tools/list latency, tool count
+      and RSS; --competitors also benchmarks common npx MCP servers.
+
+  fraziym-mcp prove [--out prove-report.json] [--include-input]
+      Dispatch every catalog tool once in a throwaway workspace and classify
+      the outcome (ok / stub / env-error). Fails on any unreachable tool.
+
+  fraziym-mcp fuzz [--cases 300] [--seed 1337] [--out fuzz-report.json]
+      Throw the adversarial path pack + seeded random paths at the workspace
+      jail; exits 1 on any escape.
 
   fraziym-mcp call <tool> [json-args] [--group ...] [--workspace PATH]
-      Invoke one tool directly.
+      Invoke one tool directly (loads only that tool's family).
 
   fraziym-mcp doctor
       Check node / git / axoniz / axodex readiness.
@@ -89,32 +107,92 @@ async function main(): Promise<number> {
 
   switch (cmd) {
     case "serve": {
-      if (flagBool(flags, "http")) {
-        process.stderr.write("[fraziym-mcp] HTTP transport lands with the router endpoints; stdio for now.\n");
-        return 1;
+      const { serve } = await import("./serve.ts");
+      const portRaw = flagString(flags, "port");
+      const port = portRaw === undefined ? undefined : Number.parseInt(portRaw, 10);
+      if (portRaw !== undefined && (port === undefined || Number.isNaN(port))) {
+        process.stderr.write(`invalid --port: ${portRaw}\n`);
+        return 2;
+      }
+      const rateLimitRaw = flagString(flags, "rate-limit");
+      const rateLimitBurst =
+        rateLimitRaw === undefined ? undefined : rateLimitRaw === "off" ? 0 : Number.parseInt(rateLimitRaw, 10);
+      if (rateLimitRaw !== undefined && (rateLimitBurst === undefined || Number.isNaN(rateLimitBurst) || rateLimitBurst < 0)) {
+        process.stderr.write(`invalid --rate-limit: ${rateLimitRaw} (use a burst count or "off")\n`);
+        return 2;
       }
       await serve({
         workspace,
         group: groupOf(flags),
         readOnly: flagBool(flags, "read-only"),
         noNetwork: flagBool(flags, "no-network"),
+        allowOutside: flagBool(flags, "allow-outside"),
+        audit: !flagBool(flags, "no-audit"),
+        http: flagBool(flags, "http"),
+        port,
+        host: flagString(flags, "host"),
+        token: flagString(flags, "token"),
+        rateLimitBurst,
+        routerTools: flagBool(flags, "router-tools"),
       });
       return 0;
     }
 
+    case "bench": {
+      const { bench } = await import("./bench.ts");
+      const runsRaw = flagString(flags, "runs");
+      const runs = runsRaw === undefined ? 3 : Number.parseInt(runsRaw, 10);
+      if (Number.isNaN(runs) || runs < 1) {
+        process.stderr.write(`invalid --runs: ${runsRaw}\n`);
+        return 2;
+      }
+      return await bench({
+        workspace,
+        runs,
+        json: flagBool(flags, "json"),
+        competitors: flagBool(flags, "competitors"),
+      });
+    }
+
+    case "prove": {
+      const { prove } = await import("./prove.ts");
+      return await prove({
+        out: flagString(flags, "out") ?? "prove-report.json",
+        includeInput: flagBool(flags, "include-input"),
+      });
+    }
+
+    case "fuzz": {
+      const { fuzz } = await import("./fuzz.ts");
+      const casesRaw = flagString(flags, "cases");
+      const cases = casesRaw === undefined ? 300 : Number.parseInt(casesRaw, 10);
+      if (Number.isNaN(cases) || cases < 0) {
+        process.stderr.write(`invalid --cases: ${casesRaw}\n`);
+        return 2;
+      }
+      const seedRaw = flagString(flags, "seed");
+      const seed = seedRaw === undefined ? 1337 : Number.parseInt(seedRaw, 10);
+      if (Number.isNaN(seed)) {
+        process.stderr.write(`invalid --seed: ${seedRaw}\n`);
+        return 2;
+      }
+      return await fuzz({ out: flagString(flags, "out") ?? "fuzz-report.json", cases, seed });
+    }
+
     case "tools": {
       const group = groupOf(flags);
-      const tb = toolboxFor(group, workspace);
+      const { LazyToolHost } = await import("../core/host.ts");
+      const host = new LazyToolHost({ workspace, group });
       if (flagBool(flags, "json")) {
         out(
           JSON.stringify(
             {
               group,
-              count: tb.names().length,
-              tools: tb.specs().map((s) => ({
-                name: s.function.name,
-                description: s.function.description,
-                ...(tb.meta(s.function.name) ?? {}),
+              count: host.names().length,
+              tools: host.catalogTools().map((t) => ({
+                name: t.name,
+                description: t.description,
+                ...t.meta,
               })),
             },
             null,
@@ -122,14 +200,13 @@ async function main(): Promise<number> {
           ),
         );
       } else {
-        for (const s of tb.specs()) {
-          const meta = tb.meta(s.function.name) ?? {};
-          const tags = [meta.destructive ? "destructive" : "", meta.network ? "network" : ""]
+        for (const t of host.catalogTools()) {
+          const tags = [t.meta.destructive ? "destructive" : "", t.meta.network ? "network" : ""]
             .filter(Boolean)
             .join(",");
-          out(`${s.function.name.padEnd(24)} ${tags ? `[${tags}]` : ""}`);
+          out(`${t.name.padEnd(24)} ${tags ? `[${tags}]` : ""}`);
         }
-        out(`${String(tb.names().length)} tools`);
+        out(`${String(host.names().length)} tools`);
       }
       return 0;
     }
@@ -150,14 +227,21 @@ async function main(): Promise<number> {
           return 2;
         }
       }
-      const tb = toolboxFor(groupOf(flags), workspace);
-      const result = await tb.call(tool, args);
+      const { LazyToolHost } = await import("../core/host.ts");
+      const host = new LazyToolHost({
+        workspace,
+        group: groupOf(flags),
+        guard: { audit: false },
+      });
+      const result = await host.call(tool, args);
       out(result);
       return result.startsWith("[ERROR]") ? 1 : 0;
     }
 
-    case "doctor":
+    case "doctor": {
+      const { doctor } = await import("./doctor.ts");
       return doctor();
+    }
 
     case "install": {
       const client = positionals[0];
@@ -165,15 +249,18 @@ async function main(): Promise<number> {
         process.stderr.write("usage: fraziym-mcp install claude|cursor [--write]\n");
         return 2;
       }
-      installClient(client as InstallClient, flagBool(flags, "write"));
+      const { installClient } = await import("./install.ts");
+      installClient(client, flagBool(flags, "write"));
       return 0;
     }
 
     case "version":
     case "--version":
-    case "-v":
+    case "-v": {
+      const { pkgVersion } = await import("./version.ts");
       out(pkgVersion());
       return 0;
+    }
 
     case "help":
     case "--help":

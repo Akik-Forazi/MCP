@@ -6,6 +6,7 @@
  * result strings so an agent loop can never crash on a tool failure.
  */
 
+import { PATH_ARG_MAX, PATH_ARGS } from "./path-args.ts";
 import type {
   JsonSchemaProp,
   RegisteredTool,
@@ -16,6 +17,18 @@ import type {
 
 function errText(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
+}
+
+/** Publish the guard's path-arg cap in the schema so clients can pre-validate. */
+function capPathArgs(name: string, properties: Record<string, JsonSchemaProp>): Record<string, JsonSchemaProp> {
+  const keys = PATH_ARGS[name];
+  if (!keys) return properties;
+  const out: Record<string, JsonSchemaProp> = { ...properties };
+  for (const key of keys) {
+    const prop = out[key];
+    if (prop && prop.maxLength === undefined) out[key] = { ...prop, maxLength: PATH_ARG_MAX };
+  }
+  return out;
 }
 
 export class Toolbox {
@@ -35,7 +48,7 @@ export class Toolbox {
         function: {
           name,
           description,
-          parameters: { type: "object", properties, required },
+          parameters: { type: "object", properties: capPathArgs(name, properties), required },
         },
       },
       handler,
@@ -70,6 +83,11 @@ export class Toolbox {
 
   has(name: string): boolean {
     return this.tools.has(name);
+  }
+
+  /** Raw entries (schema + handler + meta) — used by guard wrapping and catalog codegen. */
+  list(): RegisteredTool[] {
+    return [...this.tools.values()];
   }
 
   names(): string[] {

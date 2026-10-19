@@ -106,6 +106,6 @@ export function registerMemoryTools(tb: Toolbox, mem: UnifiedMemory): void {
     const fn = handlers[name];
     const schema = schemas.get(name);
     if (!fn || !schema) continue;
-    tb.registerSpec(schema, (args) => toStr(fn(args)), DESTRUCTIVE.has(name) ? { destructive: true } : {});
+    tb.registerSpec(schema, (args) => toStr(fn(args)), DESTRUCTIVE.has(name) ? { destructive: true } : { readOnly: true });
   }
 }

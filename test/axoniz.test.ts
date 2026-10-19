@@ -223,8 +223,18 @@ test("memory-family tools always resolve to strings (bound, never Unknown)", asy
 });
 
 test("agent-runtime stubs return explicit errors", async () => {
+  const minimal: Record<string, Record<string, unknown>> = {
+    swarm_spawn: { task: "x" },
+    shadow_step: { task: "x" },
+    war_room: { topic: "x" },
+    goal_create: { title: "x" },
+    goal_kr_add: { goal_id: "g", title: "x" },
+    goal_action_add: { kr_id: "k", title: "x" },
+    goal_update_score: { goal_id: "g", score: 1 },
+    goal_action_complete: { action_id: "a" },
+  };
   for (const name of STUBS) {
-    const out = await tb.call(name, {});
+    const out = await tb.call(name, minimal[name] ?? {});
     assert.ok(out.startsWith("[ERROR]"), `${name}: ${out}`);
     assert.ok(out.includes("axoniz agent runtime"), out);
   }
@@ -232,9 +242,9 @@ test("agent-runtime stubs return explicit errors", async () => {
 
 test("capability metadata flags risky tools", () => {
   assert.deepEqual(tb.meta("git_push"), { destructive: true, network: true });
-  assert.deepEqual(tb.meta("git_status"), {});
+  assert.deepEqual(tb.meta("git_status"), { readOnly: true });
   assert.deepEqual(tb.meta("palace_store"), { destructive: true });
-  assert.deepEqual(tb.meta("file_read"), {});
+  assert.deepEqual(tb.meta("file_read"), { readOnly: true });
   assert.deepEqual(tb.meta("mouse_move"), { destructive: true });
 });
 

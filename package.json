@@ -1,7 +1,8 @@
 {
   "name": "@fraziym/mcp",
-  "version": "0.1.0-beta.3",
-  "description": "Fraziym MCP — shared agent toolbelt. Hardcoded, importable tool groups that wrap @fraziym/axoniz tool classes (files, shell, web, code, axodex) plus git, for the axo ecosystem's agents.",
+  "version": "0.1.1-beta.0",
+  "mcpName": "io.github.Akik-Forazi/mcp",
+  "description": "Fraziym MCP — fastest, most secure MCP toolbelt server: 74 tools (files, shell, web, code, axodex, git, memory), dual-era protocol 2026-07-28 + legacy, plus router/fix/brain gateway endpoints.",
   "keywords": [
     "ai",
     "agent",
@@ -48,10 +49,18 @@
   "files": [
     "dist",
     "bin",
-    "README.md"
+    "catalog.json",
+    "README.md",
+    "SECURITY.md",
+    "docs"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && npm run catalog",
+    "catalog": "node --experimental-strip-types scripts/gen-catalog.ts",
+    "bench": "node --experimental-strip-types src/cli/index.ts bench",
+    "bench:competitors": "node --experimental-strip-types src/cli/index.ts bench --competitors",
+    "prove": "node --experimental-strip-types src/cli/index.ts prove",
+    "fuzz": "node --experimental-strip-types src/cli/index.ts fuzz",
     "dev": "tsc -p tsconfig.json --watch",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --test --experimental-strip-types \"test/**/*.test.ts\"",

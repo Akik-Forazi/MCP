@@ -1,0 +1,62 @@
+{
+  "workspace": "C:\\Users\\user\\akik\\programing\\axo\\mcp",
+  "runs": 3,
+  "results": [
+    {
+      "name": "fraziym-mcp (dist, published build)",
+      "via": "dist",
+      "readyMs": 187,
+      "listMs": 1,
+      "tools": 74,
+      "rssMb": 66.2
+    },
+    {
+      "name": "fraziym-mcp (source, type-strip)",
+      "via": "source",
+      "readyMs": 390,
+      "listMs": 1,
+      "tools": 74,
+      "rssMb": 76.6
+    },
+    {
+      "name": "fraziym-mcp.exe (launcher)",
+      "via": "exe",
+      "readyMs": 327,
+      "listMs": 2,
+      "tools": 74,
+      "rssMb": 66.2
+    },
+    {
+      "name": "@modelcontextprotocol/server-filesystem",
+      "via": "npx",
+      "readyMs": 3830,
+      "listMs": 12,
+      "tools": 14,
+      "rssMb": 197.4
+    },
+    {
+      "name": "@modelcontextprotocol/server-memory",
+      "via": "npx",
+      "readyMs": 3572,
+      "listMs": 9,
+      "tools": 9,
+      "rssMb": 178.6
+    },
+    {
+      "name": "@modelcontextprotocol/server-everything",
+      "via": "npx",
+      "readyMs": 4024,
+      "listMs": 8,
+      "tools": 12,
+      "rssMb": 178.4
+    },
+    {
+      "name": "@modelcontextprotocol/server-sequential-thinking",
+      "via": "npx",
+      "readyMs": 4809,
+      "listMs": 9,
+      "tools": 1,
+      "rssMb": 177.4
+    }
+  ]
+}
