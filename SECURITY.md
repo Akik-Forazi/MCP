@@ -42,7 +42,7 @@ Out of scope: a compromised host account, a malicious shared `~/.fraziym/config.
 
 ### Audit log
 
-`~/.fraziym/mcp/audit.jsonl` (or `$FRAZIYM_MCP_HOME`, `$FRAZIYM_MCP_AUDIT`) records tool name, arg hash, timing and truncation — values are **redacted** (secret-looking keys and `sk-…`/`ghp_…`/`Bearer …` patterns replaced) and the audit path never throws. Tail it with the `audit_tail` gateway endpoint.
+The machine-local audit log (`%LOCALAPPDATA%\FRAZIYM\mcp\audit.jsonl` on Windows, `~/.cache/fraziym/mcp/audit.jsonl` on Linux — or `$FRAZIYM_MCP_HOME`, `$FRAZIYM_MCP_AUDIT`) records tool name, arg hash, timing and truncation — values are **redacted** (secret-looking keys and `sk-…`/`ghp_…`/`Bearer …` patterns replaced) and the audit path never throws. Tail it with the `audit_tail` gateway endpoint.
 
 ### Supply chain
 

@@ -9,7 +9,8 @@
  *      (2 MiB default) and a hard 4 KB cap on filesystem-path arguments.
  *   3. Output truncation — 64 KB default, marked when cut.
  *   4. Timeout + audit — every call is time-bounded and (optionally) logged
- *      to ~/.fraziym/mcp/audit.jsonl with secrets scrubbed.
+ *      to the machine-local FRAZIYM cache (`%LOCALAPPDATA%\FRAZIYM\mcp\audit.jsonl`)
+ *      with secrets scrubbed.
  *
  * The layer wraps handlers, so a guarded Toolbox behaves exactly like the
  * original one — except escapes become `[ERROR] ... escapes workspace`.

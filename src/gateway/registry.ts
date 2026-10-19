@@ -31,7 +31,7 @@ const PACK_BUDGET = 16 * 1024;
 
 export interface GatewayDeps {
   workspace: string;
-  /** Per-product state dir (audit/queue), default ~/.fraziym/mcp. */
+  /** Per-product state dir (audit/queue), default machine-local FRAZIYM cache. */
   home: string;
   /** Shared Fraziym config dir (~/.fraziym) — config.json is read from here. */
   configHome?: string;
@@ -284,7 +284,7 @@ export function buildGatewayToolbox(deps: GatewayDeps): Toolbox {
 
   tb.register(
     "fix_queue_pull",
-    "Gateway: pull the next pending item from the fix queue (~/.fraziym/mcp/fix-queue.jsonl).",
+    "Gateway: pull the next pending item from the machine-local fix queue (`%LOCALAPPDATA%\\FRAZIYM\\mcp\\fix-queue.jsonl`; `$FRAZIYM_MCP_HOME` overrides).",
     {},
     [],
     () => queuePull(deps.home),
@@ -393,7 +393,7 @@ export function buildGatewayToolbox(deps: GatewayDeps): Toolbox {
 
   tb.register(
     "audit_tail",
-    "Gateway: tail the local audit log (~/.fraziym/mcp/audit.jsonl) — redacted call records, newest last.",
+    "Gateway: tail the machine-local audit log (`%LOCALAPPDATA%\\FRAZIYM\\mcp\\audit.jsonl`; `$FRAZIYM_MCP_HOME` overrides) — redacted call records, newest last.",
     { lines: N("How many entries (default 20)"), tool: S("Optional tool name filter") },
     [],
     (args) => auditTail(Math.max(1, argInt(args, "lines", 20)), argStr(args, "tool")),

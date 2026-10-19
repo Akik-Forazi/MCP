@@ -64,7 +64,7 @@ Security engineering (details in [SECURITY.md](./SECURITY.md)): workspace jail w
 
 ## Gateway endpoints (`serve --router-tools`)
 
-Custom endpoints for agent orchestration, configured via **`~/.fraziym/config.json` — the shared Fraziym ecosystem config** (override `$FRAZIYM_HOME`; put the keys at the top level or under an `"mcp"` section so other Fraziym products can share the file). API keys come from `apiKeyEnv` (recommended) or inline `apiKey` and are never echoed — `router_status` reports presence, not material. Audit log and fix queue stay per-product under `~/.fraziym/mcp` (`$FRAZIYM_MCP_HOME`).
+Custom endpoints for agent orchestration, configured via **`~/.fraziym/config.json` — the shared Fraziym ecosystem config** (override `$FRAZIYM_HOME`; put the keys at the top level or under an `"mcp"` section so other Fraziym products can share the file). API keys come from `apiKeyEnv` (recommended) or inline `apiKey` and are never echoed — `router_status` reports presence, not material. Audit log and fix queue stay per-product in the machine-local FRAZIYM cache — `%LOCALAPPDATA%\FRAZIYM\mcp` on Windows, `~/.cache/fraziym/mcp` on Linux (`$FRAZIYM_MCP_HOME`).
 
 ```json
 {
@@ -86,7 +86,7 @@ Custom endpoints for agent orchestration, configured via **`~/.fraziym/config.js
 | `router_status` | Providers, key presence (never key material), routing rules, verify commands |
 | `fix_verify` | Runs the configured verify commands (test/lint/…) in the workspace, pass/fail + output tails |
 | `fix_shadow` | Applies candidate `{path, content}` files in a **throwaway git worktree**, runs `test_cmd` there, reports — the workspace is never touched |
-| `fix_queue_pull` / `fix_queue_complete` | Append-only fix queue at `~/.fraziym/mcp/fix-queue.jsonl` |
+| `fix_queue_pull` / `fix_queue_complete` | Append-only fix queue in the machine-local FRAZIYM cache (`%LOCALAPPDATA%\FRAZIYM\mcp\fix-queue.jsonl`) |
 | `brain_absolute` | Combined code-graph (axodex) + long-term memory (palace) search |
 | `brain_pack` | Context pack for a task: workspace overview + axodex matches + palace matches, token-budgeted |
 | `brain_remember` | Durable palace note (`memory_save` with brain-prefixed keys) |

@@ -259,13 +259,17 @@ test("shared config supports an 'mcp' section alongside other products", async (
   fs.rmSync(shared, { recursive: true, force: true });
 });
 
-test("mcp state nests under the shared fraziym home", () => {
+test("mcp state lives in the machine-local fraziym cache (T2)", () => {
   const prevState = process.env.FRAZIYM_MCP_HOME;
+  const prevLocal = process.env.FRAZIYM_LOCAL;
   delete process.env.FRAZIYM_MCP_HOME;
+  process.env.FRAZIYM_LOCAL = path.join("tmp", "fraziym-local");
   try {
-    assert.equal(mcpHome(), path.join(process.env.FRAZIYM_HOME ?? "", "mcp"));
+    assert.equal(mcpHome(), path.resolve("tmp", "fraziym-local", "mcp"));
   } finally {
     if (prevState === undefined) delete process.env.FRAZIYM_MCP_HOME;
     else process.env.FRAZIYM_MCP_HOME = prevState;
+    if (prevLocal === undefined) delete process.env.FRAZIYM_LOCAL;
+    else process.env.FRAZIYM_LOCAL = prevLocal;
   }
 });

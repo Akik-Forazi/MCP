@@ -9,7 +9,8 @@
  * products can share the same file. API keys resolve from inline `apiKey` or,
  * the saner default, the env var named by `apiKeyEnv`; keys are never logged,
  * echoed, or serialized into tool output. Per-product state (audit log, fix
- * queue) lives under $FRAZIYM_MCP_HOME (~/.fraziym/mcp), not here.
+ * queue) lives under $FRAZIYM_MCP_HOME (default: the machine-local FRAZIYM
+ * cache, `%LOCALAPPDATA%\FRAZIYM\mcp`), not here.
  */
 
 import fs from "node:fs";

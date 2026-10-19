@@ -2,7 +2,8 @@
  * Audit log — one JSONL line per tool call, written outside the workspace.
  *
  * Never records raw arguments or outputs: secrets are scrubbed and values
- * previewed. The default location is `~/.fraziym/mcp/audit.jsonl`; override
+ * previewed. The default location is the machine-local FRAZIYM cache
+ * (`%LOCALAPPDATA%\FRAZIYM\mcp\audit.jsonl` on Windows); override
  * with `FRAZIYM_MCP_AUDIT` (full file path) or `FRAZIYM_MCP_HOME` (dir).
  */
 

@@ -2,6 +2,16 @@
 
 All notable changes to `@fraziym/mcp`. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: semver with `-beta` prereleases.
 
+## Unreleased
+
+### Changed
+
+- Per-product state (audit log, fix queue) moved from `~/.fraziym/mcp/` to the machine-local FRAZIYM cache — `%LOCALAPPDATA%\FRAZIYM\mcp` on Windows, `~/Library/Caches/FRAZIYM/mcp` on macOS, `$XDG_CACHE_HOME/fraziym/mcp` on Linux (`$FRAZIYM_LOCAL` or `$FRAZIYM_MCP_HOME` overrides).
+
+### Fixed
+
+- `doctor` axoniz-home check now uses the unified `~/.fraziym/axoniz` (honors `$AXONIZ_HOME`) instead of the legacy `~/.axoniz`.
+
 ## 0.1.1-beta.0 — 2026-10-19
 
 ### Added

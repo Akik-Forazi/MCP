@@ -4,8 +4,9 @@
 
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
+
+import { fraziymHome } from "../core/home.ts";
 
 interface Check {
   name: string;
@@ -42,7 +43,7 @@ export async function doctor(): Promise<number> {
     detail: inv ? `resolved via ${inv.via}` : "not found — npm install -g @fraziym/axodex",
   });
 
-  const axonizHome = path.join(os.homedir(), ".axoniz");
+  const axonizHome = process.env.AXONIZ_HOME?.trim() || path.join(fraziymHome(), "axoniz");
   try {
     fs.mkdirSync(axonizHome, { recursive: true });
     fs.accessSync(axonizHome, fs.constants.W_OK);
