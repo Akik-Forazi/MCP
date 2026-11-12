@@ -1,6 +1,8 @@
 # Listing kit — getting @fraziym/mcp into the indexes
 
-Status 2026-10-19: **blocked on `npm publish`** (needs the account OTP). Everything else is prepped and waiting.
+Status 2026-10-19: `0.1.1-beta.0` is published on the **`beta`** tag. The next
+release is pending; `latest` still points at `0.1.0-beta.1`, which has no CLI
+`bin`, so installs use `@fraziym/mcp@beta` until it is republished.
 
 The pipeline is a chain — each step unlocks the next:
 
@@ -11,13 +13,15 @@ The pipeline is a chain — each step unlocks the next:
 5. **mcp.so** web form (manual browser, GitHub sign-in).
 6. Optional: **Plug and Ship** (free, open-source only), **Smithery** (needs a hosted HTTPS endpoint or an MCPB bundle — later).
 
-## 1. npm publish
+## 1. npm publish (next version)
+
+`0.1.1-beta.0` is already on the `beta` tag. For the next version:
 
 ```powershell
 cd C:\Users\user\akik\programing\axo\mcp
 npm publish            # web OTP prompt
-npm dist-tag add @fraziym/mcp@0.1.1-beta.0 beta
-npm view @fraziym/mcp version   # verify
+npm dist-tag add @fraziym/mcp@<version> beta
+npm view @fraziym/mcp dist-tags   # verify latest/beta
 ```
 
 ## 2. Official MCP Registry
@@ -50,7 +54,7 @@ curl.exe "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github
 Target: https://github.com/punkpeye/awesome-mcp-servers → Developer Tools section, alphabetical. One line:
 
 ```md
-- [Akik-Forazi/MCP](https://github.com/Akik-Forazi/MCP) [![Akik-Forazi/MCP MCP server](https://glama.ai/mcp/servers/Akik-Forazi/MCP/badges/score.svg)](https://glama.ai/mcp/servers/Akik-Forazi/MCP) 📇 🏠 🍎 🪟 🐧 - Fastest, most secure MCP toolbelt server: 74 tools (files, shell, web, code, git, memory) + router/fix/brain gateway, protocol 2026-07-28 + legacy.
+- [Akik-Forazi/MCP](https://github.com/Akik-Forazi/MCP) [![Akik-Forazi/MCP MCP server](https://glama.ai/mcp/servers/Akik-Forazi/MCP/badges/score.svg)](https://glama.ai/mcp/servers/Akik-Forazi/MCP) 📇 🏠 🍎 🪟 🐧 - MCP toolbelt server with 74 tools (files, shell, web, code, git, memory) + router/fix/brain gateway, protocol 2026-07-28 + legacy.
 ```
 
 - The bot checks: `owner/repo` name, GitHub link, Glama score badge (step 3 must be live first), permitted emojis (📇 TypeScript, 🏠 local, 🍎🪟🐧 OS). PR title: `Add Akik-Forazi/MCP`. Automated-agent PRs opt into a fast lane by appending `🤖🤖🤖` to the title.
@@ -66,7 +70,7 @@ https://mcp.so/submit — sign in with the GitHub account that owns the repo:
 - Config to paste:
 
 ```json
-{"mcpServers":{"fraziym":{"command":"npx","args":["-y","@fraziym/mcp","serve"]}}}
+{"mcpServers":{"fraziym":{"command":"npx","args":["-y","@fraziym/mcp@beta","serve"]}}}
 ```
 
 - Tags: `mcp-server`, `tools`, `file-system`, `git`, `shell`, `memory`, `router`
@@ -77,12 +81,12 @@ https://mcp.so/submit — sign in with the GitHub account that owns the repo:
 - **PulseMCP** — submissions paused (last checked 2026-10-17); it ingests the official registry automatically when they reopen. Nothing to do.
 - **Plug and Ship** — free listing for open-source repos: https://plugandship.dev/submit. The README now carries an `npx` install line in a code block for their parser.
 - **Smithery** — requires a public HTTPS Streamable HTTP endpoint (we ship `serve --http`, but hosting is a separate decision) or an MCPB bundle. Revisit after 0.1.1 goes stable.
-- **Agent-bench leaderboards** (MCPMark / MCP-Universe) — separate track; needs a live agent loop with provider keys and long runs. The `router_*` gateway endpoints are the hook once keys exist in the shared `~/.fraziym/config.json`.
+- **Agent benchmarks** (MCPMark / MCP-Universe) are out of scope; this repository does not maintain or submit a benchmark score.
 
 ## Canonical fields (reuse everywhere)
 
 - Name: `Fraziym MCP` (package `@fraziym/mcp`)
 - Repo: `https://github.com/Akik-Forazi/MCP`
 - Registry id: `io.github.Akik-Forazi/mcp`
-- One-liner: `Fastest, most secure MCP toolbelt server: 74 tools + router/fix/brain gateway (2026-07-28 + legacy).`
+- One-liner: `MCP toolbelt server with 74 tools + router/fix/brain gateway (2026-07-28 + legacy).`
 - Badge: `https://glama.ai/mcp/servers/Akik-Forazi/MCP/badges/score.svg`

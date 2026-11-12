@@ -3,7 +3,7 @@
  * HTML→text fetch) to web_search / web_get tools.
  */
 
-import type { WebTools } from "@fraziym/axoniz/tools";
+import type { WebTools } from "../impl/index.ts";
 
 import { argInt, argStr } from "../core/args.ts";
 import type { Toolbox } from "../core/toolbox.ts";

@@ -17,18 +17,16 @@ const HELP = `fraziym-mcp — @fraziym/mcp toolbelt CLI
   fraziym-mcp serve [--group axoniz|xorvoid|all] [--workspace PATH]
                     [--read-only] [--no-network] [--allow-outside] [--no-audit]
                     [--http] [--port 7777] [--host 127.0.0.1] [--token SECRET]
-                    [--rate-limit 30|off] [--router-tools]
+                    [--rate-limit 30|off] [--router-tools] [--conformance]
       MCP server over stdio (default) or Streamable HTTP (protocol 2026-07-28
-      stateless + legacy initialize; Origin-checked, loopback-bound by default,
-      tools/call rate-limited over HTTP). --router-tools additionally
-      advertises the gateway endpoints (router_*, fix_*, brain_*, ...).
+      stateless + legacy initialize/sessions/SSE; Origin-checked, loopback-
+      bound by default, tools/call rate-limited over HTTP). --router-tools
+      additionally advertises the gateway endpoints (router_*, fix_*, ...);
+      --conformance adds the MCP spec test fixtures (test_* names) used by the
+      official conformance suite.
 
   fraziym-mcp tools [--group ...] [--json]
       List the tools in a group (default: all). Answered from the catalog.
-
-  fraziym-mcp bench [--runs 3] [--competitors] [--json]
-      Measure cold-start (spawn → initialize), tools/list latency, tool count
-      and RSS; --competitors also benchmarks common npx MCP servers.
 
   fraziym-mcp prove [--out prove-report.json] [--include-input]
       Dispatch every catalog tool once in a throwaway workspace and classify
@@ -134,24 +132,9 @@ async function main(): Promise<number> {
         token: flagString(flags, "token"),
         rateLimitBurst,
         routerTools: flagBool(flags, "router-tools"),
+        conformance: flagBool(flags, "conformance"),
       });
       return 0;
-    }
-
-    case "bench": {
-      const { bench } = await import("./bench.ts");
-      const runsRaw = flagString(flags, "runs");
-      const runs = runsRaw === undefined ? 3 : Number.parseInt(runsRaw, 10);
-      if (Number.isNaN(runs) || runs < 1) {
-        process.stderr.write(`invalid --runs: ${runsRaw}\n`);
-        return 2;
-      }
-      return await bench({
-        workspace,
-        runs,
-        json: flagBool(flags, "json"),
-        competitors: flagBool(flags, "competitors"),
-      });
     }
 
     case "prove": {
@@ -233,9 +216,10 @@ async function main(): Promise<number> {
         group: groupOf(flags),
         guard: { audit: false },
       });
-      const result = await host.call(tool, args);
-      out(result);
-      return result.startsWith("[ERROR]") ? 1 : 0;
+      const { renderToolResult } = await import("../core/types.ts");
+      const text = renderToolResult(await host.call(tool, args));
+      out(text);
+      return text.startsWith("[ERROR]") ? 1 : 0;
     }
 
     case "doctor": {

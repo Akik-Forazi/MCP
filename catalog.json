@@ -1,11 +1,13 @@
 {
-  "version": "0.1.1-beta.0",
+  "version": "0.1.2-beta.0",
   "tools": [
     {
       "name": "file_read",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Read a file with line numbers. Optional start_line/end_line range.",
       "inputSchema": {
@@ -37,7 +39,9 @@
       "name": "file_write",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Write/overwrite a file (auto-creates directories).",
       "inputSchema": {
@@ -66,7 +70,9 @@
       "name": "file_edit",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Find-and-replace inside a file (whitespace-tolerant, shows diff).",
       "inputSchema": {
@@ -100,7 +106,9 @@
       "name": "file_append",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Append text to the end of a file.",
       "inputSchema": {
@@ -129,7 +137,9 @@
       "name": "file_delete",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Delete a file or directory.",
       "inputSchema": {
@@ -153,7 +163,9 @@
       "name": "file_list",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "List directory contents.",
       "inputSchema": {
@@ -175,7 +187,9 @@
       "name": "file_search",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Find files matching a glob pattern (e.g. *.ts, **/*.json).",
       "inputSchema": {
@@ -203,7 +217,9 @@
       "name": "shell_run",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Run a shell/CMD command in the workspace. Returns exit code, stdout, stderr.",
       "inputSchema": {
@@ -230,7 +246,9 @@
       "name": "shell_python",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Execute Python code and capture output (requires a python interpreter).",
       "inputSchema": {
@@ -253,7 +271,9 @@
       "name": "web_search",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Search the web via DuckDuckGo. Returns titles, URLs and snippets.",
       "inputSchema": {
@@ -281,7 +301,9 @@
       "name": "web_get",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Fetch a URL and return its readable text content (HTML stripped).",
       "inputSchema": {
@@ -309,7 +331,9 @@
       "name": "code_tree",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Show a file/directory tree of the workspace.",
       "inputSchema": {
@@ -335,7 +359,9 @@
       "name": "code_analyze",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "List classes/functions found in Python files under a path.",
       "inputSchema": {
@@ -357,7 +383,9 @@
       "name": "code_lint",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Lint a Python file with flake8.",
       "inputSchema": {
@@ -381,7 +409,9 @@
       "name": "code_format",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Format a Python file with black.",
       "inputSchema": {
@@ -606,7 +636,9 @@
       "name": "axodex_query",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Semantic search across the codebase knowledge graph (concepts, flows).",
       "inputSchema": {
@@ -633,7 +665,9 @@
       "name": "axodex_context",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Get architectural context for a named symbol (callers, callees, process).",
       "inputSchema": {
@@ -656,7 +690,9 @@
       "name": "axodex_impact",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Blast-radius analysis: what breaks if this symbol changes.",
       "inputSchema": {
@@ -683,7 +719,9 @@
       "name": "axodex_smart_read",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Read a symbol with its graph context instead of raw file text.",
       "inputSchema": {
@@ -706,7 +744,9 @@
       "name": "axodex_status",
       "groups": [
         "axoniz",
-        "xorvoid"
+        "xorvoid",
+        "qaTools",
+        "secTools"
       ],
       "description": "Index freshness / stats for the workspace's code graph.",
       "inputSchema": {
@@ -721,7 +761,9 @@
     {
       "name": "axodex_detect_changes",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
       "description": "Verify which symbols and execution flows are affected by uncommitted edits.",
       "inputSchema": {
@@ -736,7 +778,9 @@
     {
       "name": "axodex_analyze",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
       "description": "Force a full refresh of the workspace's code graph index.",
       "inputSchema": {
@@ -749,7 +793,9 @@
     {
       "name": "mouse_move",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
       "description": "Move the mouse cursor to absolute screen coordinates.",
       "inputSchema": {
@@ -776,7 +822,9 @@
     {
       "name": "mouse_click",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
       "description": "Click the mouse, optionally moving to absolute coordinates first.",
       "inputSchema": {
@@ -804,7 +852,9 @@
     {
       "name": "key_type",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
       "description": "Type a text string via the keyboard.",
       "inputSchema": {
@@ -830,7 +880,9 @@
     {
       "name": "key_press",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
       "description": "Press a single key or hotkey combo (e.g. \"enter\", \"ctrl+c\").",
       "inputSchema": {
@@ -852,7 +904,9 @@
     {
       "name": "screen_size",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
       "description": "Get the primary screen resolution.",
       "inputSchema": {
@@ -865,7 +919,9 @@
     {
       "name": "screen_capture",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
       "description": "Capture a screenshot of the screen to a PNG file.",
       "inputSchema": {
@@ -884,7 +940,9 @@
     {
       "name": "screen_find",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
       "description": "Find text on screen via OCR; returns its coordinates.",
       "inputSchema": {
@@ -1445,23 +1503,21 @@
     {
       "name": "swarm_spawn",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
-      "description": "Spawn parallel worker agents in isolated git worktrees.",
+      "description": "Spawn a swarm of worker agents that decompose a task and execute the sub-tasks in parallel with real tools (gateway LLM).",
       "inputSchema": {
         "type": "object",
         "properties": {
           "task": {
             "type": "string",
-            "description": "Task for the swarm"
+            "description": "The task to decompose and execute"
           },
           "workers": {
             "type": "integer",
-            "description": "Worker count (default 4)"
-          },
-          "base_branch": {
-            "type": "string",
-            "description": "Base branch to fork from"
+            "description": "Max parallel workers (default 3)"
           }
         },
         "required": [
@@ -1475,19 +1531,21 @@
     {
       "name": "shadow_step",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
-      "description": "Run a shadow verification step (propose → test → measure diff).",
+      "description": "Speculative execution: run the task on a temporary git shadow branch, verify with a test command, then revert (or keep the branch on success).",
       "inputSchema": {
         "type": "object",
         "properties": {
           "task": {
             "type": "string",
-            "description": "Task to verify"
+            "description": "The task to execute speculatively"
           },
           "test_cmd": {
             "type": "string",
-            "description": "Command that decides pass/fail"
+            "description": "Command that decides pass/fail (default: echo ok)"
           }
         },
         "required": [
@@ -1501,27 +1559,26 @@
     {
       "name": "war_room",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
-      "description": "Convene the multi-agent war room to debate a decision.",
+      "description": "Status summary for the workspace: git state, active goals, and the tool-audit tail. Read-only, no LLM.",
       "inputSchema": {
         "type": "object",
-        "properties": {
-          "topic": {
-            "type": "string",
-            "description": "Topic to debate"
-          }
-        },
-        "required": [
-          "topic"
-        ]
+        "properties": {},
+        "required": []
       },
-      "meta": {}
+      "meta": {
+        "readOnly": true
+      }
     },
     {
       "name": "goal_create",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
       "description": "Create a new goal.",
       "inputSchema": {
@@ -1555,7 +1612,9 @@
     {
       "name": "goal_list",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
       "description": "List goals.",
       "inputSchema": {
@@ -1568,12 +1627,16 @@
         },
         "required": []
       },
-      "meta": {}
+      "meta": {
+        "readOnly": true
+      }
     },
     {
       "name": "goal_kr_add",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
       "description": "Add a key result to a goal.",
       "inputSchema": {
@@ -1604,7 +1667,9 @@
     {
       "name": "goal_action_add",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
       "description": "Schedule an action under a key result.",
       "inputSchema": {
@@ -1635,7 +1700,9 @@
     {
       "name": "goal_update_score",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
       "description": "Update a goal's progress score.",
       "inputSchema": {
@@ -1648,6 +1715,10 @@
           "score": {
             "type": "number",
             "description": "Progress score (0-100)"
+          },
+          "key_result_id": {
+            "type": "string",
+            "description": "Optional key-result id to scope the score"
           }
         },
         "required": [
@@ -1662,7 +1733,9 @@
     {
       "name": "goal_action_complete",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
       "description": "Mark a goal action complete.",
       "inputSchema": {
@@ -1684,7 +1757,9 @@
     {
       "name": "goal_report",
       "groups": [
-        "axoniz"
+        "axoniz",
+        "qaTools",
+        "secTools"
       ],
       "description": "Generate a goal progress report.",
       "inputSchema": {
@@ -1697,7 +1772,9 @@
         },
         "required": []
       },
-      "meta": {}
+      "meta": {
+        "readOnly": true
+      }
     },
     {
       "name": "file_patch",
@@ -1760,6 +1837,322 @@
         },
         "required": [
           "pattern"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "axotest_run",
+      "groups": [
+        "qaTools"
+      ],
+      "description": "Run axotest test generation on the given path.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to test (relative to workspace)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {}
+    },
+    {
+      "name": "axotest_security",
+      "groups": [
+        "qaTools"
+      ],
+      "description": "Run axotest security test generation on the given path.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to test (relative to workspace)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {}
+    },
+    {
+      "name": "axotest_edge",
+      "groups": [
+        "qaTools"
+      ],
+      "description": "Run axotest edge case test generation on the given path.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to test (relative to workspace)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {}
+    },
+    {
+      "name": "axotest_unit",
+      "groups": [
+        "qaTools"
+      ],
+      "description": "Run axotest unit test generation on the given path.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to test (relative to workspace)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {}
+    },
+    {
+      "name": "axovb_predict",
+      "groups": [
+        "qaTools"
+      ],
+      "description": "Predict semantic version bump from git diff.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to git repo (relative to workspace)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "axovb_apply",
+      "groups": [
+        "qaTools"
+      ],
+      "description": "Apply semantic version bump to package.json.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to package.json (relative to workspace)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {}
+    },
+    {
+      "name": "axovb_auto",
+      "groups": [
+        "qaTools"
+      ],
+      "description": "Auto-detect and apply semantic version bump.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to git repo (relative to workspace)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {}
+    },
+    {
+      "name": "axotest_predict",
+      "groups": [
+        "qaTools"
+      ],
+      "description": "Predict semantic version bump from git diff (via axovb model).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to git repo (relative to workspace)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "xorgis_scan",
+      "groups": [
+        "secTools"
+      ],
+      "description": "Run xorgis security scan on the given path.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to scan (relative to workspace)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "xorgis_harden",
+      "groups": [
+        "secTools"
+      ],
+      "description": "Run xorgis hardening on the given path.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to harden (relative to workspace)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {}
+    },
+    {
+      "name": "xorgis_audit",
+      "groups": [
+        "secTools"
+      ],
+      "description": "Run xorgis audit on the given path.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to audit (relative to workspace)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "xorgis_encrypt",
+      "groups": [
+        "secTools"
+      ],
+      "description": "Encrypt files using xorgis. DESTRUCTIVE — requires explicit opt-in.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to encrypt (relative to workspace)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "xorgis_decrypt",
+      "groups": [
+        "secTools"
+      ],
+      "description": "Decrypt files using xorgis. DESTRUCTIVE — requires explicit opt-in.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to decrypt (relative to workspace)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {
+        "destructive": true
+      }
+    },
+    {
+      "name": "xorgis_pqverify",
+      "groups": [
+        "secTools"
+      ],
+      "description": "Verify post-quantum crypto (ML-KEM/ML-DSA/SLH-DSA/BLAKE3) signatures.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to verify (relative to workspace)"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "meta": {
+        "readOnly": true
+      }
+    },
+    {
+      "name": "xorgis_kvs",
+      "groups": [
+        "secTools"
+      ],
+      "description": "Verify key-value store integrity via Merkle chain audit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to key-value store (relative to workspace)"
+          }
+        },
+        "required": [
+          "path"
         ]
       },
       "meta": {

@@ -3,7 +3,7 @@
  * get_time, done, absolute_query (combined code-graph + palace search).
  */
 
-import type { UnifiedMemory } from "@fraziym/axoniz/memory";
+import type { UnifiedMemory } from "../impl/types/memory.ts";
 
 import { argStr } from "../core/args.ts";
 import type { Toolbox } from "../core/toolbox.ts";

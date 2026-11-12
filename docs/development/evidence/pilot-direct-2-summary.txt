@@ -1,0 +1,8 @@
+Benchmark summary — pilot-direct-2 — 2026-10-19T13:26:15.494Z
+
+target                               ok/n     init    list   tree RSS  tools
+everything                            2/2  307.2ms  10.4ms     85.7MB     16
+filesystem                            2/2  288.3ms    12ms     83.7MB     14
+memory                                2/2  245.5ms     8ms     80.8MB      9
+self-dist                             2/2    134ms     1ms     69.9MB     74
+self-published                        2/2  127.2ms     1ms     69.2MB     74

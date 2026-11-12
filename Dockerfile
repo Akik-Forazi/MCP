@@ -5,7 +5,7 @@ ARG FRAZIYM_MCP_VERSION=0.1.1-beta.0
 RUN npm install --global --no-fund --no-audit "@fraziym/mcp@${FRAZIYM_MCP_VERSION}"
 
 LABEL org.opencontainers.image.title="fraziym-mcp" \
-      org.opencontainers.image.description="The fastest, most secure MCP toolbelt: 74 tools behind one process, plus router/fix/brain gateway endpoints." \
+      org.opencontainers.image.description="MCP toolbelt server: 74 tools behind one process, plus router/fix/brain gateway endpoints." \
       org.opencontainers.image.source="https://github.com/Akik-Forazi/MCP" \
       org.opencontainers.image.licenses="MIT"
 

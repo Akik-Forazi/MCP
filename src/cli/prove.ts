@@ -15,7 +15,7 @@ import process from "node:process";
 
 import { execCapture } from "../core/exec.ts";
 import { LazyToolHost } from "../core/host.ts";
-import { STUB_TOOL_NAMES } from "../tools/stubs.ts";
+import { STUB_TOOL_NAMES } from "../tools/agentRuntime.ts";
 
 export interface ProveOptions {
   out: string;
@@ -76,6 +76,9 @@ function classify(name: string, result: string): CaseResult["status"] {
 }
 
 export async function prove(opts: ProveOptions): Promise<number> {
+  // Agent-runtime tools (swarm/shadow) would do real LLM work — prove only
+  // verifies dispatchability, so they run in probe mode.
+  process.env.FRAZIYM_MCP_PROBE = "1";
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "fraziym-mcp-prove-"));
   fs.writeFileSync(path.join(root, "prove.txt"), "prove content\nPROVE_TOKEN\n");
 
@@ -110,7 +113,8 @@ export async function prove(opts: ProveOptions): Promise<number> {
       const started = Date.now();
       let out: string;
       try {
-        out = await host.call(name, argsFor(params));
+        const { renderToolResult } = await import("../core/types.ts");
+        out = renderToolResult(await host.call(name, argsFor(params)));
       } catch (e) {
         out = `[ERROR] Unknown tool: ${name} (${e instanceof Error ? e.message : String(e)})`;
       }

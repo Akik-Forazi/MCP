@@ -4,7 +4,7 @@
  * error strings rather than throws.
  */
 
-import type { ComputerTools } from "@fraziym/axoniz/tools";
+import type { ComputerTools } from "../impl/index.ts";
 
 import { argInt, argStr } from "../core/args.ts";
 import type { Toolbox } from "../core/toolbox.ts";

@@ -1,0 +1,89 @@
+{
+  "schema": "fraziym-bench-installs/1",
+  "generatedAt": "2026-10-19T13:19:10.642Z",
+  "cacheRoot": "C:\\Users\\user\\akik\\programing\\axo\\mcp\\bench\\.cache\\npm",
+  "installs": [
+    {
+      "id": "self-published",
+      "packageName": "@fraziym/mcp",
+      "version": "0.1.1-beta.0",
+      "spec": "@fraziym/mcp@0.1.1-beta.0",
+      "dir": "C:\\Users\\user\\akik\\programing\\axo\\mcp\\bench\\.cache\\npm\\self-published",
+      "reused": false,
+      "ok": true,
+      "installMs": 140925,
+      "binName": "fraziym-mcp",
+      "binPath": "C:\\Users\\user\\akik\\programing\\axo\\mcp\\bench\\.cache\\npm\\self-published\\node_modules\\@fraziym\\mcp\\dist\\cli\\index.js",
+      "sizeMb": 1305.6,
+      "files": 18115,
+      "originalCmd": "C:\\Program Files\\nodejs\\node.exe",
+      "originalArgs": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npx-cli.js",
+        "--yes",
+        "@fraziym/mcp@0.1.1-beta.0",
+        "serve"
+      ]
+    },
+    {
+      "id": "everything",
+      "packageName": "@modelcontextprotocol/server-everything",
+      "version": "2.0.0",
+      "spec": "@modelcontextprotocol/server-everything@2.0.0",
+      "dir": "C:\\Users\\user\\akik\\programing\\axo\\mcp\\bench\\.cache\\npm\\everything",
+      "reused": false,
+      "ok": true,
+      "installMs": 18022,
+      "binName": "mcp-server-everything",
+      "binPath": "C:\\Users\\user\\akik\\programing\\axo\\mcp\\bench\\.cache\\npm\\everything\\node_modules\\@modelcontextprotocol\\server-everything\\dist\\index.js",
+      "sizeMb": 21.7,
+      "files": 2510,
+      "originalCmd": "C:\\Program Files\\nodejs\\node.exe",
+      "originalArgs": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npx-cli.js",
+        "--yes",
+        "@modelcontextprotocol/server-everything@2.0.0"
+      ]
+    },
+    {
+      "id": "filesystem",
+      "packageName": "@modelcontextprotocol/server-filesystem",
+      "version": "2.0.0",
+      "spec": "@modelcontextprotocol/server-filesystem@2.0.0",
+      "dir": "C:\\Users\\user\\akik\\programing\\axo\\mcp\\bench\\.cache\\npm\\filesystem",
+      "reused": false,
+      "ok": true,
+      "installMs": 9796,
+      "binName": "mcp-server-filesystem",
+      "binPath": "C:\\Users\\user\\akik\\programing\\axo\\mcp\\bench\\.cache\\npm\\filesystem\\node_modules\\@modelcontextprotocol\\server-filesystem\\dist\\index.js",
+      "sizeMb": 20.1,
+      "files": 1380,
+      "originalCmd": "C:\\Program Files\\nodejs\\node.exe",
+      "originalArgs": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npx-cli.js",
+        "--yes",
+        "@modelcontextprotocol/server-filesystem@2.0.0",
+        "C:\\Users\\user\\akik\\programing\\axo\\mcp\\bench\\results\\pilot-direct-1\\workspace"
+      ]
+    },
+    {
+      "id": "memory",
+      "packageName": "@modelcontextprotocol/server-memory",
+      "version": "2.0.0",
+      "spec": "@modelcontextprotocol/server-memory@2.0.0",
+      "dir": "C:\\Users\\user\\akik\\programing\\axo\\mcp\\bench\\.cache\\npm\\memory",
+      "reused": false,
+      "ok": true,
+      "installMs": 6640,
+      "binName": "mcp-server-memory",
+      "binPath": "C:\\Users\\user\\akik\\programing\\axo\\mcp\\bench\\.cache\\npm\\memory\\node_modules\\@modelcontextprotocol\\server-memory\\dist\\index.js",
+      "sizeMb": 13.4,
+      "files": 956,
+      "originalCmd": "C:\\Program Files\\nodejs\\node.exe",
+      "originalArgs": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npx-cli.js",
+        "--yes",
+        "@modelcontextprotocol/server-memory@2.0.0"
+      ]
+    }
+  ]
+}

@@ -7,10 +7,18 @@
  * other name goes straight to the lazy catalog host.
  */
 
+import {
+  type CompletionResult,
+  type GetPromptResult,
+  type PromptDef,
+  type ResourceContents,
+  type ResourceDef,
+  type ResourceTemplateDef,
+} from "../core/features.ts";
 import { guardToolbox, type GuardOptions } from "../core/guard.ts";
 import type { LazyToolHost } from "../core/host.ts";
 import type { Toolbox } from "../core/toolbox.ts";
-import type { ToolFunctionSchema, ToolMeta } from "../core/types.ts";
+import type { ToolCallContext, ToolFunctionSchema, ToolMeta, ToolResult } from "../core/types.ts";
 import type { ToolHostLike } from "../protocol/server.ts";
 import { createFamilyContext } from "../core/families.ts";
 import { buildGatewayToolbox, isGatewayTool, type GatewayDeps } from "./registry.ts";
@@ -75,8 +83,35 @@ export class GatewayHost implements ToolHostLike {
     return this.gateway.has(name) ? this.gateway.meta(name) : this.base.meta(name);
   }
 
-  call(name: string, args: Record<string, unknown> = {}): Promise<string> {
-    if (isGatewayTool(name)) return this.gateway.call(name, args);
-    return this.base.call(name, args);
+  call(name: string, args: Record<string, unknown> = {}, ctx?: ToolCallContext): Promise<ToolResult> {
+    if (isGatewayTool(name)) return this.gateway.call(name, args, ctx);
+    return this.base.call(name, args, ctx);
+  }
+
+  listResources(): ResourceDef[] {
+    return this.base.listResources();
+  }
+
+  listResourceTemplates(): ResourceTemplateDef[] {
+    return this.base.listResourceTemplates();
+  }
+
+  readResource(uri: string): ResourceContents {
+    return this.base.readResource(uri);
+  }
+
+  listPrompts(): PromptDef[] {
+    return this.base.listPrompts();
+  }
+
+  getPrompt(name: string, args: Record<string, string>): GetPromptResult {
+    return this.base.getPrompt(name, args);
+  }
+
+  complete(
+    ref: { type?: unknown; name?: unknown; uri?: unknown },
+    argument: { name?: unknown; value?: unknown },
+  ): CompletionResult {
+    return this.base.complete(ref, argument);
   }
 }

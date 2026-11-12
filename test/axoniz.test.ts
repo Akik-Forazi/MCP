@@ -100,27 +100,19 @@ const EXPECTED_TOOLS = [
   "screen_find",
 ];
 
-const STUBS = [
-  "swarm_spawn",
-  "shadow_step",
-  "war_room",
-  "goal_create",
-  "goal_list",
-  "goal_kr_add",
-  "goal_action_add",
-  "goal_update_score",
-  "goal_action_complete",
-  "goal_report",
-];
-
 let dir = "";
 let prevProfile = "";
+let prevFraziymHome = "";
 let tb: Toolbox;
 
 before(async () => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), "fraziym-mcp-axoniz-"));
   prevProfile = process.env.USERPROFILE ?? "";
+  prevFraziymHome = process.env.FRAZIYM_HOME ?? "";
   process.env.USERPROFILE = dir;
+  // Sandbox the axoniz home too: GoalService's GOALS_DB is computed from
+  // FRAZIYM_HOME at module load, so this must happen before the import.
+  process.env.FRAZIYM_HOME = dir;
   const { axonizTools } = await import("../src/index.ts");
   tb = axonizTools({
     workspace: dir,
@@ -133,6 +125,7 @@ before(async () => {
 
 after(() => {
   process.env.USERPROFILE = prevProfile;
+  process.env.FRAZIYM_HOME = prevFraziymHome;
   try {
     fs.rmSync(dir, { recursive: true, force: true });
   } catch {
@@ -222,23 +215,60 @@ test("memory-family tools always resolve to strings (bound, never Unknown)", asy
   }
 });
 
-test("agent-runtime stubs return explicit errors", async () => {
-  const minimal: Record<string, Record<string, unknown>> = {
+test("agent-runtime tools degrade honestly without gateway LLM", async () => {
+  // The test env has no gateway providers, so LLM-backed tools must fail
+  // with an explicit error (never silently).
+  const llmBacked: Record<string, Record<string, unknown>> = {
     swarm_spawn: { task: "x" },
     shadow_step: { task: "x" },
-    war_room: { topic: "x" },
-    goal_create: { title: "x" },
-    goal_kr_add: { goal_id: "g", title: "x" },
-    goal_action_add: { kr_id: "k", title: "x" },
-    goal_update_score: { goal_id: "g", score: 1 },
-    goal_action_complete: { action_id: "a" },
   };
-  for (const name of STUBS) {
-    const out = await tb.call(name, minimal[name] ?? {});
-    assert.ok(out.startsWith("[ERROR]"), `${name}: ${out}`);
-    assert.ok(out.includes("axoniz agent runtime"), out);
+  for (const name of Object.keys(llmBacked)) {
+    const out = await tb.call(name, llmBacked[name]);
+    assert.ok(
+      out.startsWith("[ERROR]") || out.includes("FAILED") || out.includes("ERROR"),
+      `${name}: ${out}`,
+    );
   }
+  // war_room needs no LLM — it must report real workspace state.
+  const room = await tb.call("war_room", {});
+  assert.ok(!room.startsWith("[ERROR]"), room);
+  assert.ok(room.includes("[War Room]"), room);
 });
+
+test("goal tools bind to axoniz GoalService", async () => {
+  // The optional peer is installed (dev symlink), so goal_* are live.
+  const created = await tb.call("goal_create", {
+    title: "mcp-goals-test",
+    description: "created by mcp goal binding test",
+    priority: "low",
+  });
+  assert.ok(!created.startsWith("[ERROR]"), created);
+  const createdObj = JSON.parse(created) as { id?: string };
+  assert.ok(createdObj.id, "create_goal returns the new goal");
+
+  const list = await tb.call("goal_list", {});
+  assert.ok(list.includes("Active Goals"), list);
+  assert.ok(list.includes("mcp-goals-test"), list);
+
+  const kr = await tb.call("goal_kr_add", { goal_id: createdObj.id, title: "kr1" });
+  assert.ok(!kr.startsWith("[ERROR]"), kr);
+  const krObj = JSON.parse(kr) as { id?: string };
+  assert.ok(krObj.id, "add_key_result returns the key result");
+
+  const action = await tb.call("goal_action_add", { kr_id: krObj.id, title: "act1" });
+  assert.ok(!action.startsWith("[ERROR]"), action);
+  const actionObj = JSON.parse(action) as { id?: string };
+
+  const scored = await tb.call("goal_update_score", { goal_id: createdObj.id, score: 50 });
+  assert.ok(!scored.startsWith("[ERROR]"), scored);
+
+  const completed = await tb.call("goal_action_complete", { action_id: actionObj.id });
+  assert.ok(!completed.startsWith("[ERROR]"), completed);
+
+  const report = await tb.call("goal_report", {});
+  assert.ok(typeof report === "string" && !report.startsWith("[ERROR] Unknown tool"), report);
+});
+
 
 test("capability metadata flags risky tools", () => {
   assert.deepEqual(tb.meta("git_push"), { destructive: true, network: true });

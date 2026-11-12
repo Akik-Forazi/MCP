@@ -15,7 +15,7 @@
  * name in `Toolbox.meta()` so the caller can scope per agent role.
  */
 
-import { CodeTools, FileTools, ShellTools, WebTools } from "@fraziym/axoniz/tools";
+import { CodeTools, FileTools, ShellTools, WebTools } from "../impl/index.ts";
 
 import { guardToolbox, type GuardOptions } from "../core/guard.ts";
 import { Toolbox } from "../core/toolbox.ts";

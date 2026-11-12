@@ -38,7 +38,7 @@ export interface AxodexInvocation {
 
 let cached: AxodexInvocation | null | undefined;
 
-/** Resolve the best axodex invocation right now (memoized). Exposed for doctor/bench. */
+/** Resolve the best axodex invocation right now (memoized). Exposed for doctor. */
 export function axodexInvocation(): AxodexInvocation | null {
   return resolveAxodex();
 }

@@ -9,6 +9,7 @@
 import readline from "node:readline";
 
 import type { ToolGroup } from "../core/catalog.ts";
+import { ConformanceHost } from "../core/conformance-host.ts";
 import { LazyToolHost } from "../core/host.ts";
 import { mcpHome } from "../core/home.ts";
 import { GatewayHost } from "../gateway/host.ts";
@@ -33,6 +34,12 @@ export interface ServeOptions {
   rateLimitBurst?: number;
   /** Advertise the gateway endpoints (router_*, fix_*, brain_*, …) too. */
   routerTools?: boolean;
+  /**
+   * Add the MCP spec conformance fixtures (test_* tools/resources/prompts)
+   * used by the official `@modelcontextprotocol/conformance` suite. Off by
+   * default — the product surface never advertises test fixtures.
+   */
+  conformance?: boolean;
 }
 
 export async function serve(opts: ServeOptions): Promise<void> {
@@ -44,17 +51,21 @@ export async function serve(opts: ServeOptions): Promise<void> {
     guard: { audit: opts.audit ?? true, ...(opts.allowOutside ? { allowOutside: true } : {}) },
   });
 
-  const host: ToolHostLike = opts.routerTools
+  let host: ToolHostLike = opts.routerTools
     ? new GatewayHost(lazy, {
         home: mcpHome(),
         guard: { audit: opts.audit ?? true, ...(opts.allowOutside ? { allowOutside: true } : {}) },
       })
     : lazy;
+  if (opts.conformance) {
+    host = new ConformanceHost(host);
+  }
 
   const server = new CoreServer({
     host,
     version: pkgVersion(),
     log: (line) => process.stderr.write(`${line}\n`),
+    send: (message) => process.stdout.write(`${JSON.stringify(message)}\n`),
   });
 
   const toolCount = host.names().length;
@@ -71,7 +82,9 @@ export async function serve(opts: ServeOptions): Promise<void> {
     });
     process.stderr.write(
       `[fraziym-mcp] serving ${String(toolCount)} tools (group: ${opts.group}) over Streamable HTTP ` +
-        `at ${handle.url} (protocol 2026-07-28 + legacy; sessions: none)\n`,
+        `at ${handle.url} (protocol 2026-07-28 + legacy; sessions: legacy)` +
+        (opts.conformance ? " (conformance fixtures on)" : "") +
+        "\n",
     );
     await new Promise<void>((resolve) => {
       const shutdown = (): void => {

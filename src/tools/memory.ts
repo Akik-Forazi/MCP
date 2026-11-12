@@ -9,7 +9,7 @@
  * not advertised in the axoniz 72, so it is not registered.
  */
 
-import type { UnifiedMemory } from "@fraziym/axoniz/memory";
+import type { UnifiedMemory } from "../impl/types/memory.ts";
 
 import type { Toolbox } from "../core/toolbox.ts";
 import type { ToolFunctionSchema } from "../core/types.ts";

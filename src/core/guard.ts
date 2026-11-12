@@ -23,7 +23,7 @@ import { appendAudit, hashArgs, redactPreview } from "./audit.ts";
 import { isWindows } from "./exec.ts";
 import { PATH_ARG_MAX, PATH_ARGS } from "./path-args.ts";
 import { Toolbox } from "./toolbox.ts";
-import type { ToolFunctionSchema, ToolHandler } from "./types.ts";
+import type { McpContentBlock, ToolFunctionSchema, ToolHandler } from "./types.ts";
 
 export class WorkspaceViolationError extends Error {
   constructor(requested: string, root: string) {
@@ -76,8 +76,30 @@ export function resolveWithin(root: string, p: string, allowOutside = false): st
   if (typeof p !== "string" || p.length === 0) p = ".";
   if (p.includes("\0")) throw new WorkspaceViolationError(p, root);
 
+  // "....", "…" — any all-dots segment with 3+ dots collapses into
+  // traversal under Windows-style resolvers (where it silently reduces to
+  // ".."). POSIX keeps them literal, but a paths-only-dots segment has no
+  // legitimate use, so it is rejected on every platform.
+  for (const seg of p.split(/[\\/]+/)) {
+    if (seg.length > 2 && /^\.+$/.test(seg)) throw new WorkspaceViolationError(p, root);
+  }
+
   const rootReal = canonicalize(path.resolve(root));
   const full = path.isAbsolute(p) ? path.normalize(p) : path.resolve(rootReal, p);
+
+  // Hardening (CVE-2025-53110 pack): on POSIX a backslash is a legal
+  // filename character, so `..\secret.txt` is not traversal to path.resolve.
+  // When a path contains a backslash AND a `..` segment, also validate the
+  // backslash-as-separator interpretation; both readings must stay inside
+  // the workspace. Legitimate POSIX filenames containing `\` still pass
+  // (their literal reading is contained); mixed-separator escapes do not.
+  if (!isWindows && p.includes("\\") && /(^|[\\/])\.\.(\\|\/|$)/.test(p.replace(/^[/\\]+/, ""))) {
+    const asSep = path.resolve(rootReal, p.replace(/\\+/g, "/").replace(/^\/+/, ""));
+    const canonAlt = canonicalize(asSep);
+    if (!allowOutside && !contained(path.relative(rootReal, canonAlt))) {
+      throw new WorkspaceViolationError(p, root);
+    }
+  }
 
   if (isWindows) {
     if (DEVICE_NAMESPACE.test(full)) throw new WorkspaceViolationError(p, root);
@@ -200,25 +222,37 @@ export function guardToolbox(tb: Toolbox, opts: GuardOptions): Toolbox {
   for (const entry of tb.list()) {
     const spec = entry.schema;
     const name = spec.function.name;
-    const handler: ToolHandler = async (rawArgs) => {
+    const handler: ToolHandler = async (rawArgs, ctx) => {
       const started = Date.now();
-      let result: string;
+      let result: string | McpContentBlock[];
       let status: "ok" | "error" | "truncated" | "timeout" = "ok";
       try {
         const args = validateToolArgs(name, spec, rawArgs ?? {}, opts);
         const res = await withTimeout(
-          Promise.resolve(entry.handler(args)),
+          Promise.resolve(entry.handler(args, ctx)),
           opts.timeoutMs ?? 300000,
         );
-        result = typeof res === "string" ? res : String(res);
-        if (result.startsWith("[ERROR]")) status = "error";
+        result = res;
+        if (typeof res === "string" && res.startsWith("[ERROR]")) status = "error";
       } catch (e) {
         result = `[ERROR] ${name}: ${errText(e)}`;
         status = /timed out after/.test(errText(e)) ? "timeout" : "error";
       }
 
-      const capped = truncateOutput(result, opts.maxOutputBytes ?? 65536);
-      if (capped.truncated && status === "ok") status = "truncated";
+      // Content blocks pass through; only text is truncated (per-block).
+      const maxOut = opts.maxOutputBytes ?? 65536;
+      let output: string | McpContentBlock[] = result;
+      if (typeof result === "string") {
+        const capped = truncateOutput(result, maxOut);
+        if (capped.truncated && status === "ok") status = "truncated";
+        output = capped.text;
+      } else {
+        output = result.map((block) =>
+          block.type === "text" && block.text.length > maxOut
+            ? { ...block, text: truncateOutput(block.text, maxOut).text }
+            : block,
+        );
+      }
 
       if (auditOn) {
         appendAudit(
@@ -233,7 +267,7 @@ export function guardToolbox(tb: Toolbox, opts: GuardOptions): Toolbox {
           auditTarget,
         );
       }
-      return capped.text;
+      return output;
     };
     out.registerSpec(spec, handler, entry.meta);
   }

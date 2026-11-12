@@ -6,51 +6,34 @@
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![node](https://img.shields.io/badge/node-%3E%3D24-brightgreen.svg)](https://nodejs.org)
 
-**The fastest, most secure MCP toolbelt server.** 74 tools (files · shell · web · code · git · axodex · memory) behind one process that cold-starts in ~0.3 s and idles at ~65 MB — with a second, smaller MCP surface on top: the `router/*`, `fix/*` and `brain/*` gateway endpoints.
+A 74-tool MCP server (files · shell · web · code · git · axodex · memory) with 13 optional gateway endpoints (`router/*`, `fix/*`, `brain/*`).
 
-Ships dual-era MCP: **protocol 2026-07-28** (stateless, per-request `_meta`, `server/discover`) **plus legacy** initialize-based clients (Claude Desktop, Cursor, Zed, …) over stdio or Streamable HTTP. Every claim below is reproducible — the harnesses and raw artifacts live in this repo (`bench` · `prove` · `fuzz`, `test/`, `catalog.json`).
+Ships dual-era MCP: **protocol 2026-07-28** (stateless, per-request `_meta`, `server/discover`) **plus legacy** initialize-based clients (Claude Desktop, Cursor, Zed, …) over stdio or Streamable HTTP. `tools/list` is answered from the build-time catalog (`catalog.json`); no tool family is imported until its first call.
 
-## Verified performance
-
-One line to run it:
+## Quick start
 
 ```sh
-npx -y @fraziym/mcp serve   # stdio MCP server, 74 tools (+ --router-tools for the gateway)
+npx -y @fraziym/mcp@beta serve   # stdio MCP server, 74 tools (+ --router-tools for the gateway)
 ```
 
-`npm run bench:competitors` (medians of 3 runs, warm `npx` cache, Windows 11, Node 24 — 2026-10-19; raw artifact: [`docs/bench-2026-10-19.json`](./docs/bench-2026-10-19.json)):
+Use the `beta` tag until the next stable publish includes the CLI `bin` entry;
+`latest` (`0.1.0-beta.1`) currently has no executable.
 
-| Server | Ready (spawn→initialize) | tools/list | Tools | RSS |
-| --- | --- | --- | --- | --- |
-| **@fraziym/mcp (built dist)** | **187 ms** | **1 ms** | **74** | **66.2 MB** |
-| @fraziym/mcp (`bin/fraziym-mcp.exe`) | 327 ms | 2 ms | 74 | 66.2 MB |
-| @fraziym/mcp (source, type-stripped) | 390 ms | 1 ms | 74 | 76.6 MB |
-| @modelcontextprotocol/server-sequential-thinking | 4.81 s | 9 ms | 1 | 177.4 MB |
-| @modelcontextprotocol/server-everything | 4.02 s | 8 ms | 12 | 178.4 MB |
-| @modelcontextprotocol/server-filesystem | 3.83 s | 12 ms | 14 | 197.4 MB |
-| @modelcontextprotocol/server-memory | 3.57 s | 9 ms | 9 | 178.6 MB |
+Verification is in the section below. The removed public benchmark is documented,
+with its caveats, in [`docs/development/benchmark-history.md`](./docs/development/benchmark-history.md).
 
-Cold `tools/list` is answered from a build-time catalog (`catalog.json`) — no provider SDK or tool class is imported until its family is first called. Self-startup varies 187–299 ms across runs on this machine; npx competitors are 2–3× slower on a cold cache. Run it yourself: `npm run bench -- --competitors --json`.
-
-Cross-checked against an independent dataset (TechFuelHQ, Windows 11, 2026-08-19, warm caches, 11 popular servers): the same server family measures 0.55–1.9 s ready and 178–422 MB RSS there — so on both methodologies `@fraziym/mcp` is the fastest and lightest general-purpose MCP server measured to date, with 74 tools in a single process where the benchmarked field needs 5–8 servers (~962 MB for a five-server stack) to cover less.
-
-## Verified correctness & security
+## Verification & security
 
 | Evidence | Result | Reproduce |
 | --- | --- | --- |
-| YawLabs MCP Compliance (2026-07-28 suite) | **Score 99 · Grade A** — 28/28 required checks pass; 2 optional fails documented below | `npx -y @yawlabs/mcp-compliance test http://127.0.0.1:7777/mcp --auth "Bearer SECRET"` |
-| Own test suite | 91 tests, 90 pass / 1 skip (live-server test) | `npm test` |
+| Official MCP conformance suite (v0.1.16, 2025-11-25 server suite) | **32/32 scenarios · 47/47 checks · 0 failed** — incl. SEP-1699 SSE polling/resume, sampling, elicitation, resources, prompts, completion | `fraziym-mcp serve --http --conformance` then `npx -y @modelcontextprotocol/conformance@0.1.16 server --url http://127.0.0.1:7777/mcp --suite all` |
+| Own test suite | 93 tests, 92 pass / 1 skip (live-server test) | `npm test` |
 | `prove` — every catalog tool dispatched once in a throwaway workspace | 74 tools: 52 ok · 10 agent-runtime stubs · 6 env-errors (fresh repo / no remote) · 6 desktop-skipped · **0 unreachable** | `npm run prove` → `prove-report.json` |
-| `fuzz` — adversarial path pack vs the workspace jail | 327 cases (27 known CVE-shaped + 300 seeded), **0 escapes**; oversized args rejected by both caps | `npm run fuzz` → `fuzz-report.json` |
+| `fuzz` — adversarial path pack vs the workspace jail | 327 cases (27 known CVE-shaped + 300 seeded), **0 breaches**; oversized args rejected by both caps | `npm run fuzz` → `fuzz-report.json` |
 
-YawLabs residual (both are environment/design, not protocol defects, and reported by the suite as optional):
+Official MCP conformance suite (v0.1.16, `2025-11-25` server suite): **32/32 scenarios · 47/47 checks · 0 failed** — including SEP-1699 SSE polling (priming event + retry + `Last-Event-ID` resume), concurrent POST streams, sampling, elicitation (incl. SEP-1034 defaults and SEP-1330 enums), rich content blocks, resources (list/read/templates/subscribe), prompts, completion and both DNS-rebinding checks (raw artifact: [`docs/conformance-2026-10-19.md`](./docs/conformance-2026-10-19.md); re-verified 2026-10-20: [`evidence`](./docs/development/evidence/conformance-rerun-2026-10-20.txt)). The suite is written against spec fixture names (`test_*`), so those are registered only under `serve --conformance`; they drive the same protocol machinery as the real surface (no stubs), and the default server still advertises exactly 74 catalog tools with no fixtures.
 
-- `security-tls-required` — fails only when serving plain `http://` on loopback for local tests; put TLS in front (reverse proxy/tunnel) for remote use.
-- `security-oauth-metadata` — the check wants a **non-empty** `authorization_servers` array. We do publish RFC 9728 Protected Resource Metadata at `/.well-known/oauth-protected-resource` (with `WWW-Authenticate: Bearer resource_metadata="…"` on 401) but run **static bearer tokens, not OAuth**: advertising an authorization server we don't have would be dishonest, so `authorization_servers` is `[]`.
-
-Official MCP conformance suite (server suite ships for 2025-11-25; 30 scenarios): **8 passed / 22 failed, zero regressions**, where the pass set covers everything this server implements — `initialize`, `ping`, `logging/setLevel`, `tools/list`, `tools/call` (text + error), and both DNS-rebinding checks. The remaining scenarios exercise resources, prompts, completions, sampling, elicitation, progress/content/logging *fixture* tools and SSE stream fixtures — features a stateless 2026-07-28 toolbelt server intentionally does not expose (sampling/elicitation were replaced by MRTR in that revision). No fake `test_*` fixtures were added to game the suite.
-
-Security engineering (details in [SECURITY.md](./SECURITY.md)): workspace jail with realpath containment, path-arg caps published as `maxLength: 4096` in every schema and enforced before dispatch (`-32602`), 2 MiB argument cap, output truncation, secret-redacted audit log, and the 2026 header/identity checks (`-32020` mismatches, `-32022` version). HTTP mode binds `127.0.0.1` by default, validates `Origin` (DNS-rebinding), disables sessions, is POST-only, supports `--token` bearer auth, and rate-limits `tools/call` per client (burst 30, 15/s; `--rate-limit N|off`). This closes the known 2025–2026 MCP CVE classes by construction: filesystem traversal (CVE-2025-53109/53110), git args as flags/options injection (CVE-2025-68143/44/45), unvalidated redirect/OAuth in proxies (CVE-2025-6514), and 0.0.0.0 dashboard exposure à la Grafana MCP.
+Security engineering (details in [SECURITY.md](./SECURITY.md)): workspace jail with realpath containment, path-arg caps published as `maxLength: 4096` in every schema and enforced before dispatch (`-32602`), 2 MiB argument cap, output truncation, secret-redacted audit log, and the 2026 header/identity checks (`-32020` mismatches, `-32022` version). HTTP mode binds `127.0.0.1` by default, validates `Origin` (DNS-rebinding), keeps 2026-07-28 stateless and POST-only while legacy clients get `Mcp-Session-Id` lifecycle and SSE streams with bounded replay (SEP-1699; 500 events/stream, 10 min), supports `--token` bearer auth, and rate-limits `tools/call` per client (burst 30, 15/s; `--rate-limit N|off`). Regression tests cover the known 2025–2026 MCP CVE classes: filesystem traversal (CVE-2025-53109/53110), git args as flags/options injection (CVE-2025-68143/44/45), unvalidated redirect/OAuth in proxies (CVE-2025-6514), and 0.0.0.0 dashboard exposure à la Grafana MCP.
 
 ## Groups
 
@@ -61,6 +44,11 @@ Security engineering (details in [SECURITY.md](./SECURITY.md)): workspace jail w
 | `all` (default) + `--router-tools` | 87 | 74 catalog tools + 13 gateway endpoints (`router_*`, `fix_*`, `brain_*`, `tools_discover`, `audit_tail`) |
 
 `axonizTools` breakdown (72): files 7 · shell 2 · web 2 · code 4 · git 10 (full, incl. push/pull/stash) · axodex 7 · computer 7 · memory 20 (`UnifiedMemory`: KV + palace + KG + diary) · misc 3 (`get_time`, `done`, `absolute_query`) · agent-runtime 10 (`swarm_spawn`, `shadow_step`, `war_room`, `goal_*`) — these last ten return explicit `[ERROR] … requires the axoniz agent runtime` strings until axoniz exports goals/swarm standalone. Read-only tools publish MCP `annotations` (`readOnlyHint`/`destructiveHint`/`openWorldHint`) and `tools/list` stays catalog-static: the default server always advertises exactly **74**.
+
+Standalone migration is planned, not complete: this group still lazy-loads
+`@fraziym/axoniz`, which currently brings Axodex as a non-optional peer. See the
+[74-tool inventory](./docs/development/tool-inventory.md) and
+[standalone migration plan](./docs/development/standalone-migration.md).
 
 ## Gateway endpoints (`serve --router-tools`)
 
@@ -119,7 +107,6 @@ fraziym-mcp serve [--group axoniz|xorvoid|all] [--workspace .] [--read-only] [--
                   [--token SECRET] [--rate-limit 30|off] [--router-tools]
 fraziym-mcp tools [--group ...] [--json]
 fraziym-mcp call <tool> '{"arg":"value"}'
-fraziym-mcp bench [--runs 3] [--competitors] [--json]
 fraziym-mcp prove [--out prove-report.json] [--include-input]
 fraziym-mcp fuzz [--cases 300] [--seed 1337] [--out fuzz-report.json]
 fraziym-mcp doctor

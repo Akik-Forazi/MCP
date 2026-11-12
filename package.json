@@ -1,8 +1,8 @@
 {
   "name": "@fraziym/mcp",
-  "version": "0.1.1-beta.0",
+  "version": "0.1.2-beta.0",
   "mcpName": "io.github.Akik-Forazi/mcp",
-  "description": "Fraziym MCP — fastest, most secure MCP toolbelt server: 74 tools (files, shell, web, code, axodex, git, memory), dual-era protocol 2026-07-28 + legacy, plus router/fix/brain gateway endpoints.",
+  "description": "Fraziym MCP - 74 tools in one process with dual-era MCP (2026-07-28 + legacy), workspace guard and optional gateway.",
   "keywords": [
     "ai",
     "agent",
@@ -36,6 +36,26 @@
     "./axoniz": {
       "types": "./dist/groups/axoniz.d.ts",
       "import": "./dist/groups/axoniz.js"
+    },
+    "./tools": {
+      "types": "./dist/impl/index.d.ts",
+      "import": "./dist/impl/index.js"
+    },
+    "./internal": {
+      "types": "./dist/impl/_internal.d.ts",
+      "import": "./dist/impl/_internal.js"
+    },
+    "./qaTools": {
+      "types": "./dist/groups/qaTools.d.ts",
+      "import": "./dist/groups/qaTools.js"
+    },
+    "./secTools": {
+      "types": "./dist/groups/secTools.d.ts",
+      "import": "./dist/groups/secTools.js"
+    },
+    "./gateway": {
+      "types": "./dist/gateway/index.d.ts",
+      "import": "./dist/gateway/index.js"
     }
   },
   "main": "./dist/index.js",
@@ -52,19 +72,17 @@
     "catalog.json",
     "README.md",
     "SECURITY.md",
-    "docs"
+    "docs/*.md"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json && npm run catalog",
-    "catalog": "node --experimental-strip-types scripts/gen-catalog.ts",
-    "bench": "node --experimental-strip-types src/cli/index.ts bench",
-    "bench:competitors": "node --experimental-strip-types src/cli/index.ts bench --competitors",
-    "prove": "node --experimental-strip-types src/cli/index.ts prove",
-    "fuzz": "node --experimental-strip-types src/cli/index.ts fuzz",
+    "catalog": "npx -y tsx scripts/gen-catalog.ts",
+    "prove": "npx -y tsx src/cli/index.ts prove",
+    "fuzz": "npx -y tsx src/cli/index.ts fuzz",
     "dev": "tsc -p tsconfig.json --watch",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test --experimental-strip-types \"test/**/*.test.ts\"",
-    "docs": "node --experimental-strip-types scripts/gen-tool-docs.ts",
+    "test": "npx -y tsx --test \"test/**/*.test.ts\"",
+    "docs": "npx -y tsx scripts/gen-tool-docs.ts",
     "mcpb:pack": "npx --yes @anthropic-ai/mcpb pack",
     "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true})\"",
     "build:exe": "node scripts/build-exe.mjs",
@@ -73,9 +91,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {
-    "@fraziym/axoniz": ">=0.1.8-beta.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^26.6.4",
     "typescript": "^7.0.2"

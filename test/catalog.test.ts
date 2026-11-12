@@ -13,15 +13,21 @@ import { loadCatalog, toolsForGroup } from "../src/core/catalog.ts";
 
 let dir = "";
 let prevProfile = "";
+let prevFraziymHome = "";
 
 before(() => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), "fraziym-mcp-catalog-test-"));
   prevProfile = process.env.USERPROFILE ?? "";
+  prevFraziymHome = process.env.FRAZIYM_HOME ?? "";
   process.env.USERPROFILE = dir;
+  // Sandbox the axoniz home so goal tools never touch the real goals.db
+  // (GOALS_DB resolves from FRAZIYM_HOME at the first peer import).
+  process.env.FRAZIYM_HOME = dir;
 });
 
 after(() => {
   process.env.USERPROFILE = prevProfile;
+  process.env.FRAZIYM_HOME = prevFraziymHome;
   try {
     fs.rmSync(dir, { recursive: true, force: true });
   } catch {
@@ -29,13 +35,13 @@ after(() => {
   }
 });
 
-test("catalog covers exactly 74 tools (72 axoniz + 2 xorvoid extras)", () => {
+test("catalog covers exactly 89 tools (72 axoniz + 2 xorvoid extras)", () => {
   const cat = loadCatalog();
   assert.ok(cat, "catalog.json missing — run `npm run catalog`");
-  assert.equal(cat.tools.length, 74);
+  assert.equal(cat.tools.length, 89);
   assert.equal(toolsForGroup(cat, "axoniz").length, 72);
   assert.equal(toolsForGroup(cat, "xorvoid").length, 25);
-  assert.equal(toolsForGroup(cat, "all").length, 74);
+  assert.equal(toolsForGroup(cat, "all").length, 89);
 
   const extras = cat.tools
     .filter((t) => t.groups.length === 1 && t.groups[0] === "xorvoid")
@@ -44,7 +50,7 @@ test("catalog covers exactly 74 tools (72 axoniz + 2 xorvoid extras)", () => {
 });
 
 test("catalog equals the live registrars (no drift)", async () => {
-  const { axonizTools, xorvoidTools } = await import("../src/index.ts");
+  const { axonizTools, xorvoidTools, qaTools, secTools } = await import("../src/index.ts");
   const ax = axonizTools({
     workspace: dir,
     memoryPaths: {
@@ -53,12 +59,14 @@ test("catalog equals the live registrars (no drift)", async () => {
     },
   });
   const xv = xorvoidTools({ workspace: dir });
+  const qa = qaTools({ workspace: dir });
+  const sec = secTools({ workspace: dir });
 
   const cat = loadCatalog();
   assert.ok(cat);
   const byName = new Map(cat.tools.map((t) => [t.name, t]));
 
-  const live = [...ax.list(), ...xv.list()];
+  const live = [...ax.list(), ...xv.list(), ...qa.list(), ...sec.list()];
   const liveNames = new Set(live.map((t) => t.schema.function.name));
 
   for (const t of live) {
@@ -78,8 +86,8 @@ test("lazy host lists from catalog and builds families on first call", async () 
   const { LazyToolHost } = await import("../src/core/host.ts");
   const host = new LazyToolHost({ group: "all", workspace: dir });
 
-  assert.equal(host.names().length, 74);
-  assert.equal(host.specs().length, 74);
+  assert.equal(host.names().length, 89);
+  assert.equal(host.specs().length, 89);
 
   const ro = new LazyToolHost({ group: "all", workspace: dir, readOnly: true });
   assert.ok(!ro.names().includes("file_write"));
@@ -97,7 +105,7 @@ test("tool definitions publish MCP annotations from meta", async () => {
   const { LazyToolHost } = await import("../src/core/host.ts");
   const host = new LazyToolHost({ group: "all", workspace: dir });
   const defs = host.definitions();
-  assert.equal(defs.length, 74);
+  assert.equal(defs.length, 89);
 
   const byName = new Map(defs.map((d) => [d.name, d]));
   assert.deepEqual(byName.get("file_read")?.annotations, { readOnlyHint: true, destructiveHint: false });
@@ -133,5 +141,5 @@ test("lazy host calls work end to end: protocol, files, jail, stubs", async () =
   assert.ok(escape.includes("escapes workspace"), escape);
 
   const stub = await host.call("goal_list", {});
-  assert.ok(stub.includes("axoniz agent runtime"), stub);
+  assert.ok(stub.includes("Active Goals"), stub);
 });

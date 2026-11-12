@@ -131,6 +131,12 @@ export function parseCmdShim(shimPath: string): ShimInvocation | null {
   const dir = path.dirname(shimPath);
   const expand = (value: string): string => value.replace(/%~?dp0%?/gi, dir);
 
+  // On POSIX, .cmd shims are still parsed (CI coverage, cross-platform
+  // robustness), but the backslash subpaths npm writes into them would
+  // never existSync as literal filenames. Normalize them to "/" so the
+  // referenced script resolves the same way it does on Windows.
+  const norm = (s: string): string => (isWindows ? s : s.replace(/\\+/g, "/"));
+
   const vars = new Map<string, string[]>();
   for (const m of text.matchAll(/SET\s+"?([A-Za-z_][A-Za-z0-9_]*)=([^"\r\n]+)"?/gi)) {
     const name = (m[1] ?? "").toUpperCase();
@@ -152,7 +158,7 @@ export function parseCmdShim(shimPath: string): ShimInvocation | null {
       const substituted = (values[i] ?? "").replace(/%([A-Za-z_][A-Za-z0-9_]*)%/g, (whole, ref: string) => {
         return resolveVar(String(ref).toUpperCase(), depth + 1) ?? whole;
       });
-      const resolved = path.resolve(dir, expand(substituted));
+      const resolved = path.resolve(dir, norm(expand(substituted)));
       if (fs.existsSync(resolved)) return resolved;
     }
     return null;
@@ -161,7 +167,10 @@ export function parseCmdShim(shimPath: string): ShimInvocation | null {
   const candidates: Array<{ index: number; script: string }> = [];
   for (const m of text.matchAll(/"(?:%~?dp0%|%~dp0)\\?([^"%]+?\.(?:js|cjs|mjs))"/gi)) {
     if (m[1] === undefined || m.index === undefined) continue;
-    const script = path.resolve(dir, m[1]);
+    // `\\?` in the regex may consume a leading separator; keep the script
+    // relative to the shim's dir rather than the filesystem root.
+    const rel = norm(m[1]).replace(/^[/\\]+/, "");
+    const script = path.resolve(dir, rel);
     if (fs.existsSync(script)) candidates.push({ index: m.index, script });
   }
   for (const m of text.matchAll(/"%([A-Za-z_][A-Za-z0-9_]*)%"/g)) {

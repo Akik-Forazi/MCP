@@ -1,0 +1,52 @@
+{
+  "guard": {
+    "avg": null,
+    "samples": []
+  },
+  "power": {
+    "start": "Power Scheme GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c (High performance)",
+    "active": "Power Scheme GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c (High performance)"
+  },
+  "caches": {
+    "npm": "C:\\Users\\user\\AppData\\Local\\npm-cache",
+    "uv": "C:\\Users\\user\\AppData\\Local\\uv\\cache"
+  },
+  "machine": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "version": "Windows 11 Pro",
+    "node": "v24.21.0",
+    "npm": "11.19.0",
+    "python": "Python 3.11.9",
+    "uvx": "uvx 0.13.1 (62faed335 2026-10-13 x86_64-pc-windows-msvc)",
+    "git": "git version 2.55.0.windows.3",
+    "totalMemMb": 16190,
+    "freeMemMb": 5379,
+    "cpu": {
+      "Name": "Intel(R) Core(TM) i5-8265U CPU @ 1.60GHz",
+      "NumberOfCores": 4,
+      "NumberOfLogicalProcessors": 8,
+      "MaxClockSpeed": 1800,
+      "CurrentClockSpeed": 1600
+    },
+    "power": "Power Scheme GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c (High performance)"
+  },
+  "gitHead": "5915d4276ca18f703145772155e2b1442819ea72",
+  "node": "v24.21.0",
+  "argv": [
+    "--mode",
+    "perf",
+    "--set",
+    "pilot",
+    "--condition",
+    "pilot-direct-2",
+    "--runs",
+    "2",
+    "--warmup",
+    "1",
+    "--calls",
+    "--out",
+    "bench/results/pilot-direct-2",
+    "--allow-loaded"
+  ]
+}

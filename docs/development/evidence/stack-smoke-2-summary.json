@@ -1,0 +1,325 @@
+{
+  "schema": "fraziym-bench-stack-summary/1",
+  "condition": "stack-smoke",
+  "generatedAt": "2026-10-19T13:50:03.292Z",
+  "runs": 1,
+  "fullyOk": 1,
+  "totals": {
+    "treeRssMb": {
+      "n": 1,
+      "min": 688,
+      "max": 688,
+      "mean": 688,
+      "median": 688,
+      "p95": 688,
+      "iqr": 0
+    },
+    "appRssMb": {
+      "n": 1,
+      "min": 647.6,
+      "max": 647.6,
+      "mean": 647.6,
+      "median": 647.6,
+      "p95": 647.6,
+      "iqr": 0
+    },
+    "tools": {
+      "n": 1,
+      "min": 45,
+      "max": 45,
+      "mean": 45,
+      "median": 45,
+      "p95": 45,
+      "iqr": 0
+    },
+    "maxReadyMs": {
+      "n": 1,
+      "min": 6739.8,
+      "max": 6739.8,
+      "mean": 6739.8,
+      "median": 6739.8,
+      "p95": 6739.8,
+      "iqr": 0
+    },
+    "cpuSecWindow": null
+  },
+  "servers": [
+    {
+      "id": "filesystem",
+      "label": "server-filesystem (latest)",
+      "version": "2.0.0",
+      "ok": 1,
+      "failed": 0,
+      "initMs": {
+        "n": 1,
+        "min": 591.5,
+        "max": 591.5,
+        "mean": 591.5,
+        "median": 591.5,
+        "p95": 591.5,
+        "iqr": 0
+      },
+      "rssMb": {
+        "n": 1,
+        "min": 83.7,
+        "max": 83.7,
+        "mean": 83.7,
+        "median": 83.7,
+        "p95": 83.7,
+        "iqr": 0
+      },
+      "tools": 14
+    },
+    {
+      "id": "memory",
+      "label": "server-memory (latest)",
+      "version": "2.0.0",
+      "ok": 1,
+      "failed": 0,
+      "initMs": {
+        "n": 1,
+        "min": 517.6,
+        "max": 517.6,
+        "mean": 517.6,
+        "median": 517.6,
+        "p95": 517.6,
+        "iqr": 0
+      },
+      "rssMb": {
+        "n": 1,
+        "min": 80.6,
+        "max": 80.6,
+        "mean": 80.6,
+        "median": 80.6,
+        "p95": 80.6,
+        "iqr": 0
+      },
+      "tools": 9
+    },
+    {
+      "id": "git",
+      "label": "mcp-server-git (Python)",
+      "version": "2026.10.19",
+      "ok": 1,
+      "failed": 0,
+      "initMs": {
+        "n": 1,
+        "min": 3075.7,
+        "max": 3075.7,
+        "mean": 3075.7,
+        "median": 3075.7,
+        "p95": 3075.7,
+        "iqr": 0
+      },
+      "rssMb": {
+        "n": 1,
+        "min": 124.5,
+        "max": 124.5,
+        "mean": 124.5,
+        "median": 124.5,
+        "p95": 124.5,
+        "iqr": 0
+      },
+      "tools": 12
+    },
+    {
+      "id": "fetch",
+      "label": "mcp-server-fetch (Python)",
+      "version": "2026.10.19",
+      "ok": 1,
+      "failed": 0,
+      "initMs": {
+        "n": 1,
+        "min": 3070.4,
+        "max": 3070.4,
+        "mean": 3070.4,
+        "median": 3070.4,
+        "p95": 3070.4,
+        "iqr": 0
+      },
+      "rssMb": {
+        "n": 1,
+        "min": 137.8,
+        "max": 137.8,
+        "mean": 137.8,
+        "median": 137.8,
+        "p95": 137.8,
+        "iqr": 0
+      },
+      "tools": 1
+    },
+    {
+      "id": "github",
+      "label": "GitHub MCP (legacy npm)",
+      "version": "0.6.2",
+      "ok": 1,
+      "failed": 0,
+      "initMs": {
+        "n": 1,
+        "min": 6739.7,
+        "max": 6739.7,
+        "mean": 6739.7,
+        "median": 6739.7,
+        "p95": 6739.7,
+        "iqr": 0
+      },
+      "rssMb": {
+        "n": 1,
+        "min": 261.4,
+        "max": 261.4,
+        "mean": 261.4,
+        "median": 261.4,
+        "p95": 261.4,
+        "iqr": 0
+      },
+      "tools": 9
+    }
+  ],
+  "raw": [
+    {
+      "schema": "fraziym-bench-stack/1",
+      "condition": "stack-smoke",
+      "iteration": 0,
+      "warmup": false,
+      "startedAt": "2026-10-19T13:49:48.485Z",
+      "ok": true,
+      "system": {
+        "power": "Power Scheme GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c (High performance)",
+        "loadBefore": 12,
+        "loadAfter": 10,
+        "freeMemMb": 4383
+      },
+      "servers": [
+        {
+          "id": "filesystem",
+          "label": "server-filesystem (latest)",
+          "package": "@modelcontextprotocol/server-filesystem",
+          "version": "2.0.0",
+          "ok": true,
+          "spawnEventMs": 28.62,
+          "initMs": 591.5,
+          "readyMs": 591.6,
+          "listMs": 25.8,
+          "tools": 14,
+          "rssMb": 83.7,
+          "appRssMb": 75.6,
+          "privateMb": 82.9,
+          "cpuSec": 0.781,
+          "psutilRssMb": 83.7,
+          "pids": [
+            38304,
+            14908
+          ],
+          "orphans": []
+        },
+        {
+          "id": "memory",
+          "label": "server-memory (latest)",
+          "package": "@modelcontextprotocol/server-memory",
+          "version": "2.0.0",
+          "ok": true,
+          "spawnEventMs": 24.3,
+          "initMs": 517.6,
+          "readyMs": 517.7,
+          "listMs": 20,
+          "tools": 9,
+          "rssMb": 80.6,
+          "appRssMb": 72.5,
+          "privateMb": 48.6,
+          "cpuSec": 0.531,
+          "psutilRssMb": 80.6,
+          "pids": [
+            2380,
+            41024
+          ],
+          "orphans": []
+        },
+        {
+          "id": "git",
+          "label": "mcp-server-git (Python)",
+          "package": "mcp-server-git",
+          "version": "2026.10.19",
+          "ok": true,
+          "spawnEventMs": 18.26,
+          "initMs": 3075.7,
+          "readyMs": 3075.8,
+          "listMs": 3.5,
+          "tools": 12,
+          "rssMb": 124.5,
+          "appRssMb": 116.5,
+          "privateMb": 131.3,
+          "cpuSec": 2.25,
+          "psutilRssMb": 124.5,
+          "pids": [
+            41928,
+            23200,
+            11108,
+            7268,
+            27328,
+            38128
+          ],
+          "orphans": []
+        },
+        {
+          "id": "fetch",
+          "label": "mcp-server-fetch (Python)",
+          "package": "mcp-server-fetch",
+          "version": "2026.10.19",
+          "ok": true,
+          "spawnEventMs": 12.72,
+          "initMs": 3070.4,
+          "readyMs": 3070.4,
+          "listMs": 3.1,
+          "tools": 1,
+          "rssMb": 137.8,
+          "appRssMb": 129.8,
+          "privateMb": 147.9,
+          "cpuSec": 2.359,
+          "psutilRssMb": 137.8,
+          "pids": [
+            37540,
+            39092,
+            21808,
+            30840,
+            38876,
+            34316
+          ],
+          "orphans": []
+        },
+        {
+          "id": "github",
+          "label": "GitHub MCP (legacy npm)",
+          "package": "@modelcontextprotocol/server-github",
+          "version": "0.6.2",
+          "ok": true,
+          "spawnEventMs": 8.16,
+          "initMs": 6739.7,
+          "readyMs": 6739.8,
+          "listMs": 4.3,
+          "tools": 9,
+          "rssMb": 261.4,
+          "appRssMb": 253.2,
+          "privateMb": 294,
+          "cpuSec": 3.859,
+          "psutilRssMb": 261.4,
+          "pids": [
+            20216,
+            41516,
+            18352,
+            32388
+          ],
+          "orphans": []
+        }
+      ],
+      "totals": {
+        "expected": 5,
+        "ok": 5,
+        "treeRssMb": 688,
+        "appRssMb": 647.6,
+        "tools": 45,
+        "maxReadyMs": 6739.8,
+        "cpuSecWindow": null
+      }
+    }
+  ]
+}

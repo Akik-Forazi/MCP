@@ -9,9 +9,19 @@
 
 import { loadCatalog, toolsForGroup, type CatalogTool, type ToolGroup } from "./catalog.ts";
 import { buildFamily, createFamilyContext, familyKey, type FamilyContext } from "./families.ts";
+import {
+  ServerFeatures,
+  type CompletionResult,
+  type GetPromptResult,
+  type PromptDef,
+  type ResourceContents,
+  type ResourceDef,
+  type ResourceTemplateDef,
+} from "./features.ts";
 import { guardToolbox, type GuardOptions } from "./guard.ts";
+import { mcpHome } from "./home.ts";
 import type { Toolbox } from "./toolbox.ts";
-import type { ToolFunctionSchema, ToolMeta } from "./types.ts";
+import type { McpContentBlock, ToolCallContext, ToolFunctionSchema, ToolMeta } from "./types.ts";
 
 export interface HostOptions {
   workspace?: string;
@@ -32,6 +42,7 @@ export class LazyToolHost {
   private readonly families = new Map<string, Promise<Toolbox>>();
   private readonly ctx: FamilyContext;
   private readonly guard: Partial<GuardOptions> | false;
+  private readonly features: ServerFeatures;
 
   constructor(opts: HostOptions = {}) {
     const catalog = loadCatalog();
@@ -41,6 +52,7 @@ export class LazyToolHost {
     this.workspace = opts.workspace ?? process.cwd();
     this.group = opts.group ?? "all";
     this.guard = opts.guard ?? {};
+    this.features = new ServerFeatures({ workspace: this.workspace, home: mcpHome() });
 
     let list = toolsForGroup(catalog, this.group);
     if (opts.readOnly) list = list.filter((t) => t.meta.destructive !== true);
@@ -110,12 +122,40 @@ export class LazyToolHost {
     return fam;
   }
 
-  async call(name: string, args: Record<string, unknown> = {}): Promise<string> {
+  async call(name: string, args: Record<string, unknown> = {}, ctx?: ToolCallContext): Promise<string | McpContentBlock[]> {
     const entry = this.byName.get(name);
     if (!entry) return `[ERROR] Unknown tool: ${name}`;
     const key = familyKey(this.group, name);
     if (!key) return `[ERROR] Unknown tool: ${name}`;
     const tb = await this.family(key);
-    return tb.call(name, args);
+    return tb.call(name, args, ctx);
+  }
+
+  listResources(): ResourceDef[] {
+    return this.features.listResources();
+  }
+
+  listResourceTemplates(): ResourceTemplateDef[] {
+    return this.features.listResourceTemplates();
+  }
+
+  readResource(uri: string): ResourceContents {
+    const allowOutside = this.guard !== false && this.guard.allowOutside === true;
+    return this.features.readResource(uri, { allowOutside });
+  }
+
+  listPrompts(): PromptDef[] {
+    return this.features.listPrompts();
+  }
+
+  getPrompt(name: string, args: Record<string, string>): GetPromptResult {
+    return this.features.getPrompt(name, args);
+  }
+
+  complete(
+    ref: { type?: unknown; name?: unknown; uri?: unknown },
+    argument: { name?: unknown; value?: unknown },
+  ): CompletionResult {
+    return this.features.complete(ref, argument);
   }
 }

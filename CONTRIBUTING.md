@@ -26,7 +26,7 @@ Any change that touches a tool's name, description or schema must run `npm run b
 - **Binary-identical artifacts matter.** Tool catalogs, hook copies and generated docs are checked for drift in CI-adjacent tests; regenerate, don't hand-edit.
 - **No new runtime dependencies** without a written justification in the PR. The single dependency (`@fraziym/axoniz`) is the product's toolbelt integration; everything else ships zero-dep.
 - **Security surface changes** (path handling, shell execution, HTTP transport) must add or extend fuzz cases under `src/cli/fuzz.ts`.
-- **Performance regressions** are bugs: run `npm run bench` before/after and paste the medians in the PR.
+- **Startup regressions** are bugs: note the startup/tool-surface impact in the PR; the repository no longer maintains a public benchmark suite.
 
 ## Releases
 

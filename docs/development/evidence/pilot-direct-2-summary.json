@@ -1,0 +1,927 @@
+{
+  "schema": "fraziym-bench-summary/1",
+  "condition": "pilot-direct-2",
+  "generatedAt": "2026-10-19T13:26:15.494Z",
+  "targets": [
+    {
+      "id": "everything",
+      "label": "server-everything (latest)",
+      "group": "official",
+      "package": "@modelcontextprotocol/server-everything",
+      "version": "2.0.0",
+      "iterations": 2,
+      "ok": 2,
+      "failed": 0,
+      "failures": [],
+      "serverInfo": [
+        {
+          "name": "mcp-servers/everything",
+          "title": "Everything Reference Server",
+          "version": "2.0.0"
+        }
+      ],
+      "tools": {
+        "count": 16,
+        "bytes": 10183,
+        "namesHash": "4d821d88e02dbe63c53ae56047c006c07011f2d935fbfca80f656ff1c0e72e68"
+      },
+      "metrics": {
+        "spawnEventMs": {
+          "n": 2,
+          "min": 5.02,
+          "max": 5.09,
+          "mean": 5.05,
+          "median": 5.05,
+          "p95": 5.09,
+          "iqr": 0.06
+        },
+        "initMs": {
+          "n": 2,
+          "min": 305.8,
+          "max": 308.6,
+          "mean": 307.2,
+          "median": 307.2,
+          "p95": 308.6,
+          "iqr": 2.8
+        },
+        "readyMs": {
+          "n": 2,
+          "min": 305.9,
+          "max": 308.7,
+          "mean": 307.3,
+          "median": 307.3,
+          "p95": 308.7,
+          "iqr": 2.8
+        },
+        "listMs": {
+          "n": 2,
+          "min": 9,
+          "max": 11.7,
+          "mean": 10.35,
+          "median": 10.35,
+          "p95": 11.7,
+          "iqr": 2.7
+        },
+        "iterationMs": {
+          "n": 2,
+          "min": 3724.3,
+          "max": 3725.2,
+          "mean": 3724.75,
+          "median": 3724.75,
+          "p95": 3725.2,
+          "iqr": 0.9
+        },
+        "treeRssMb": {
+          "n": 2,
+          "min": 85.4,
+          "max": 86,
+          "mean": 85.7,
+          "median": 85.7,
+          "p95": 86,
+          "iqr": 0.6
+        },
+        "appRssMb": {
+          "n": 2,
+          "min": 77.3,
+          "max": 77.8,
+          "mean": 77.55,
+          "median": 77.55,
+          "p95": 77.8,
+          "iqr": 0.5
+        },
+        "rootRssMb": {
+          "n": 2,
+          "min": 77.3,
+          "max": 77.8,
+          "mean": 77.55,
+          "median": 77.55,
+          "p95": 77.8,
+          "iqr": 0.5
+        },
+        "privateTreeMb": {
+          "n": 2,
+          "min": 50.5,
+          "max": 51.7,
+          "mean": 51.1,
+          "median": 51.1,
+          "p95": 51.7,
+          "iqr": 1.2
+        },
+        "cpuSecAtIdle": {
+          "n": 2,
+          "min": 0.41,
+          "max": 0.41,
+          "mean": 0.41,
+          "median": 0.41,
+          "p95": 0.41,
+          "iqr": 0
+        },
+        "postTreeRssMb": {
+          "n": 2,
+          "min": 85.4,
+          "max": 86,
+          "mean": 85.7,
+          "median": 85.7,
+          "p95": 86,
+          "iqr": 0.6
+        },
+        "psutilDeltaMb": {
+          "n": 2,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "median": 0,
+          "p95": 0,
+          "iqr": 0
+        }
+      },
+      "calls": {
+        "echo": {
+          "id": "echo",
+          "tool": "echo",
+          "group": "echo",
+          "samples": 10,
+          "ok": 10,
+          "failed": 0,
+          "skipped": 0,
+          "latencyMs": {
+            "n": 10,
+            "min": 0.5,
+            "max": 0.7,
+            "mean": 0.6,
+            "median": 0.6,
+            "p95": 0.7,
+            "iqr": 0.2
+          }
+        },
+        "add": {
+          "id": "add",
+          "tool": "add",
+          "group": "add",
+          "samples": 0,
+          "ok": 0,
+          "failed": 0,
+          "skipped": 2,
+          "latencyMs": null
+        }
+      },
+      "orphans": []
+    },
+    {
+      "id": "filesystem",
+      "label": "server-filesystem (latest)",
+      "group": "official",
+      "package": "@modelcontextprotocol/server-filesystem",
+      "version": "2.0.0",
+      "iterations": 2,
+      "ok": 2,
+      "failed": 0,
+      "failures": [],
+      "serverInfo": [
+        {
+          "name": "secure-filesystem-server",
+          "version": "2.0.0"
+        }
+      ],
+      "tools": {
+        "count": 14,
+        "bytes": 12597,
+        "namesHash": "9186f99700a09a0cc69fc91222e77c8295feaf6ae4ff6d49c284babbf7b0b7d6"
+      },
+      "metrics": {
+        "spawnEventMs": {
+          "n": 2,
+          "min": 4.7,
+          "max": 5.31,
+          "mean": 5.01,
+          "median": 5.01,
+          "p95": 5.31,
+          "iqr": 0.61
+        },
+        "initMs": {
+          "n": 2,
+          "min": 264.6,
+          "max": 311.9,
+          "mean": 288.25,
+          "median": 288.25,
+          "p95": 311.9,
+          "iqr": 47.3
+        },
+        "readyMs": {
+          "n": 2,
+          "min": 264.7,
+          "max": 312,
+          "mean": 288.35,
+          "median": 288.35,
+          "p95": 312,
+          "iqr": 47.3
+        },
+        "listMs": {
+          "n": 2,
+          "min": 10.8,
+          "max": 13.1,
+          "mean": 11.95,
+          "median": 11.95,
+          "p95": 13.1,
+          "iqr": 2.3
+        },
+        "iterationMs": {
+          "n": 2,
+          "min": 3687.5,
+          "max": 3810.3,
+          "mean": 3748.9,
+          "median": 3748.9,
+          "p95": 3810.3,
+          "iqr": 122.8
+        },
+        "treeRssMb": {
+          "n": 2,
+          "min": 83.4,
+          "max": 84,
+          "mean": 83.7,
+          "median": 83.7,
+          "p95": 84,
+          "iqr": 0.6
+        },
+        "appRssMb": {
+          "n": 2,
+          "min": 75.2,
+          "max": 75.9,
+          "mean": 75.55,
+          "median": 75.55,
+          "p95": 75.9,
+          "iqr": 0.7
+        },
+        "rootRssMb": {
+          "n": 2,
+          "min": 75.2,
+          "max": 75.9,
+          "mean": 75.55,
+          "median": 75.55,
+          "p95": 75.9,
+          "iqr": 0.7
+        },
+        "privateTreeMb": {
+          "n": 2,
+          "min": 82.2,
+          "max": 82.7,
+          "mean": 82.45,
+          "median": 82.45,
+          "p95": 82.7,
+          "iqr": 0.5
+        },
+        "cpuSecAtIdle": {
+          "n": 2,
+          "min": 0.33,
+          "max": 0.41,
+          "mean": 0.37,
+          "median": 0.37,
+          "p95": 0.41,
+          "iqr": 0.08
+        },
+        "postTreeRssMb": {
+          "n": 2,
+          "min": 83.8,
+          "max": 84.4,
+          "mean": 84.1,
+          "median": 84.1,
+          "p95": 84.4,
+          "iqr": 0.6
+        },
+        "psutilDeltaMb": {
+          "n": 2,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "median": 0,
+          "p95": 0,
+          "iqr": 0
+        }
+      },
+      "calls": {
+        "file-read": {
+          "id": "file-read",
+          "tool": "read_file",
+          "group": "file-read",
+          "samples": 10,
+          "ok": 10,
+          "failed": 0,
+          "skipped": 0,
+          "latencyMs": {
+            "n": 10,
+            "min": 2,
+            "max": 2.7,
+            "mean": 2.33,
+            "median": 2.4,
+            "p95": 2.7,
+            "iqr": 0.5
+          }
+        },
+        "file-list": {
+          "id": "file-list",
+          "tool": "list_directory",
+          "group": "file-list",
+          "samples": 10,
+          "ok": 10,
+          "failed": 0,
+          "skipped": 0,
+          "latencyMs": {
+            "n": 10,
+            "min": 0.9,
+            "max": 1.5,
+            "mean": 1.15,
+            "median": 1.2,
+            "p95": 1.5,
+            "iqr": 0.4
+          }
+        }
+      },
+      "orphans": []
+    },
+    {
+      "id": "memory",
+      "label": "server-memory (latest)",
+      "group": "official",
+      "package": "@modelcontextprotocol/server-memory",
+      "version": "2.0.0",
+      "iterations": 2,
+      "ok": 2,
+      "failed": 0,
+      "failures": [],
+      "serverInfo": [
+        {
+          "name": "memory-server",
+          "version": "2.0.0"
+        }
+      ],
+      "tools": {
+        "count": 9,
+        "bytes": 10839,
+        "namesHash": "5d0f8296e6d510cc8a74ee8e21e9124d2f3f4b84bb8b1f5c3ff18b4f7d23b593"
+      },
+      "metrics": {
+        "spawnEventMs": {
+          "n": 2,
+          "min": 4.65,
+          "max": 4.94,
+          "mean": 4.8,
+          "median": 4.8,
+          "p95": 4.94,
+          "iqr": 0.29
+        },
+        "initMs": {
+          "n": 2,
+          "min": 245.2,
+          "max": 245.8,
+          "mean": 245.5,
+          "median": 245.5,
+          "p95": 245.8,
+          "iqr": 0.6
+        },
+        "readyMs": {
+          "n": 2,
+          "min": 245.2,
+          "max": 245.8,
+          "mean": 245.5,
+          "median": 245.5,
+          "p95": 245.8,
+          "iqr": 0.6
+        },
+        "listMs": {
+          "n": 2,
+          "min": 7.8,
+          "max": 8.2,
+          "mean": 8,
+          "median": 8,
+          "p95": 8.2,
+          "iqr": 0.4
+        },
+        "iterationMs": {
+          "n": 2,
+          "min": 3705,
+          "max": 3725.2,
+          "mean": 3715.1,
+          "median": 3715.1,
+          "p95": 3725.2,
+          "iqr": 20.2
+        },
+        "treeRssMb": {
+          "n": 2,
+          "min": 80.7,
+          "max": 80.8,
+          "mean": 80.75,
+          "median": 80.75,
+          "p95": 80.8,
+          "iqr": 0.1
+        },
+        "appRssMb": {
+          "n": 2,
+          "min": 72.6,
+          "max": 72.7,
+          "mean": 72.65,
+          "median": 72.65,
+          "p95": 72.7,
+          "iqr": 0.1
+        },
+        "rootRssMb": {
+          "n": 2,
+          "min": 72.6,
+          "max": 72.7,
+          "mean": 72.65,
+          "median": 72.65,
+          "p95": 72.7,
+          "iqr": 0.1
+        },
+        "privateTreeMb": {
+          "n": 2,
+          "min": 48.4,
+          "max": 48.5,
+          "mean": 48.45,
+          "median": 48.45,
+          "p95": 48.5,
+          "iqr": 0.1
+        },
+        "cpuSecAtIdle": {
+          "n": 2,
+          "min": 0.28,
+          "max": 0.3,
+          "mean": 0.29,
+          "median": 0.29,
+          "p95": 0.3,
+          "iqr": 0.02
+        },
+        "postTreeRssMb": {
+          "n": 2,
+          "min": 85,
+          "max": 85.3,
+          "mean": 85.15,
+          "median": 85.15,
+          "p95": 85.3,
+          "iqr": 0.3
+        },
+        "psutilDeltaMb": {
+          "n": 2,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "median": 0,
+          "p95": 0,
+          "iqr": 0
+        }
+      },
+      "calls": {
+        "memory-write": {
+          "id": "memory-write",
+          "tool": "create_entities",
+          "group": "memory-write",
+          "samples": 10,
+          "ok": 10,
+          "failed": 0,
+          "skipped": 0,
+          "latencyMs": {
+            "n": 10,
+            "min": 5.6,
+            "max": 7,
+            "mean": 5.96,
+            "median": 5.7,
+            "p95": 7,
+            "iqr": 0.4
+          }
+        },
+        "memory-search": {
+          "id": "memory-search",
+          "tool": "search_nodes",
+          "group": "memory-search",
+          "samples": 10,
+          "ok": 10,
+          "failed": 0,
+          "skipped": 0,
+          "latencyMs": {
+            "n": 10,
+            "min": 1.6,
+            "max": 4,
+            "mean": 2.65,
+            "median": 2.4,
+            "p95": 4,
+            "iqr": 2
+          }
+        }
+      },
+      "orphans": []
+    },
+    {
+      "id": "self-dist",
+      "label": "fraziym-mcp (local dist)",
+      "group": "self",
+      "package": null,
+      "version": "0.1.1-beta.0",
+      "iterations": 2,
+      "ok": 2,
+      "failed": 0,
+      "failures": [],
+      "serverInfo": [
+        {
+          "name": "fraziym-mcp",
+          "version": "0.1.1-beta.0"
+        }
+      ],
+      "tools": {
+        "count": 74,
+        "bytes": 22969,
+        "namesHash": "68b6a7d8a4e05c43fa56e71ffb0262f7a6f314a14b203b8f325acfe0a38915f0"
+      },
+      "metrics": {
+        "spawnEventMs": {
+          "n": 2,
+          "min": 5.04,
+          "max": 6.42,
+          "mean": 5.73,
+          "median": 5.73,
+          "p95": 6.42,
+          "iqr": 1.39
+        },
+        "initMs": {
+          "n": 2,
+          "min": 131.4,
+          "max": 136.5,
+          "mean": 133.95,
+          "median": 133.95,
+          "p95": 136.5,
+          "iqr": 5.1
+        },
+        "readyMs": {
+          "n": 2,
+          "min": 131.4,
+          "max": 136.5,
+          "mean": 133.95,
+          "median": 133.95,
+          "p95": 136.5,
+          "iqr": 5.1
+        },
+        "listMs": {
+          "n": 2,
+          "min": 1,
+          "max": 1,
+          "mean": 1,
+          "median": 1,
+          "p95": 1,
+          "iqr": 0
+        },
+        "iterationMs": {
+          "n": 2,
+          "min": 3955.8,
+          "max": 3971.9,
+          "mean": 3963.85,
+          "median": 3963.85,
+          "p95": 3971.9,
+          "iqr": 16.1
+        },
+        "treeRssMb": {
+          "n": 2,
+          "min": 69.8,
+          "max": 69.9,
+          "mean": 69.85,
+          "median": 69.85,
+          "p95": 69.9,
+          "iqr": 0.1
+        },
+        "appRssMb": {
+          "n": 2,
+          "min": 61.7,
+          "max": 61.7,
+          "mean": 61.7,
+          "median": 61.7,
+          "p95": 61.7,
+          "iqr": 0
+        },
+        "rootRssMb": {
+          "n": 2,
+          "min": 61.7,
+          "max": 61.7,
+          "mean": 61.7,
+          "median": 61.7,
+          "p95": 61.7,
+          "iqr": 0
+        },
+        "privateTreeMb": {
+          "n": 2,
+          "min": 33.9,
+          "max": 34.2,
+          "mean": 34.05,
+          "median": 34.05,
+          "p95": 34.2,
+          "iqr": 0.3
+        },
+        "cpuSecAtIdle": {
+          "n": 2,
+          "min": 0.14,
+          "max": 0.17,
+          "mean": 0.16,
+          "median": 0.16,
+          "p95": 0.17,
+          "iqr": 0.03
+        },
+        "postTreeRssMb": {
+          "n": 2,
+          "min": 77.3,
+          "max": 77.6,
+          "mean": 77.45,
+          "median": 77.45,
+          "p95": 77.6,
+          "iqr": 0.3
+        },
+        "psutilDeltaMb": {
+          "n": 2,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "median": 0,
+          "p95": 0,
+          "iqr": 0
+        }
+      },
+      "calls": {
+        "file-read": {
+          "id": "file-read",
+          "tool": "file_read",
+          "group": "file-read",
+          "samples": 10,
+          "ok": 10,
+          "failed": 0,
+          "skipped": 0,
+          "latencyMs": {
+            "n": 10,
+            "min": 2,
+            "max": 2.3,
+            "mean": 2.12,
+            "median": 2.1,
+            "p95": 2.3,
+            "iqr": 0.1
+          }
+        },
+        "file-list": {
+          "id": "file-list",
+          "tool": "file_list",
+          "group": "file-list",
+          "samples": 10,
+          "ok": 10,
+          "failed": 0,
+          "skipped": 0,
+          "latencyMs": {
+            "n": 10,
+            "min": 1.1,
+            "max": 1.8,
+            "mean": 1.4,
+            "median": 1.4,
+            "p95": 1.8,
+            "iqr": 0.3
+          }
+        },
+        "git-status": {
+          "id": "git-status",
+          "tool": "git_status",
+          "group": "git-status",
+          "samples": 10,
+          "ok": 10,
+          "failed": 0,
+          "skipped": 0,
+          "latencyMs": {
+            "n": 10,
+            "min": 61.4,
+            "max": 63.7,
+            "mean": 62.29,
+            "median": 62,
+            "p95": 63.7,
+            "iqr": 1.4
+          }
+        },
+        "get-time": {
+          "id": "get-time",
+          "tool": "get_time",
+          "group": "get-time",
+          "samples": 10,
+          "ok": 10,
+          "failed": 0,
+          "skipped": 0,
+          "latencyMs": {
+            "n": 10,
+            "min": 0.4,
+            "max": 0.7,
+            "mean": 0.52,
+            "median": 0.5,
+            "p95": 0.7,
+            "iqr": 0
+          }
+        }
+      },
+      "orphans": []
+    },
+    {
+      "id": "self-published",
+      "label": "fraziym-mcp (published npm)",
+      "group": "self",
+      "package": "@fraziym/mcp",
+      "version": "0.1.1-beta.0",
+      "iterations": 2,
+      "ok": 2,
+      "failed": 0,
+      "failures": [],
+      "serverInfo": [
+        {
+          "name": "fraziym-mcp",
+          "version": "0.1.1-beta.0"
+        }
+      ],
+      "tools": {
+        "count": 74,
+        "bytes": 22969,
+        "namesHash": "68b6a7d8a4e05c43fa56e71ffb0262f7a6f314a14b203b8f325acfe0a38915f0"
+      },
+      "metrics": {
+        "spawnEventMs": {
+          "n": 2,
+          "min": 4.69,
+          "max": 4.99,
+          "mean": 4.84,
+          "median": 4.84,
+          "p95": 4.99,
+          "iqr": 0.3
+        },
+        "initMs": {
+          "n": 2,
+          "min": 126.3,
+          "max": 128,
+          "mean": 127.15,
+          "median": 127.15,
+          "p95": 128,
+          "iqr": 1.7
+        },
+        "readyMs": {
+          "n": 2,
+          "min": 126.3,
+          "max": 128,
+          "mean": 127.15,
+          "median": 127.15,
+          "p95": 128,
+          "iqr": 1.7
+        },
+        "listMs": {
+          "n": 2,
+          "min": 1,
+          "max": 1,
+          "mean": 1,
+          "median": 1,
+          "p95": 1,
+          "iqr": 0
+        },
+        "iterationMs": {
+          "n": 2,
+          "min": 3973.8,
+          "max": 3983.1,
+          "mean": 3978.45,
+          "median": 3978.45,
+          "p95": 3983.1,
+          "iqr": 9.3
+        },
+        "treeRssMb": {
+          "n": 2,
+          "min": 69.2,
+          "max": 69.2,
+          "mean": 69.2,
+          "median": 69.2,
+          "p95": 69.2,
+          "iqr": 0
+        },
+        "appRssMb": {
+          "n": 2,
+          "min": 61.1,
+          "max": 61.1,
+          "mean": 61.1,
+          "median": 61.1,
+          "p95": 61.1,
+          "iqr": 0
+        },
+        "rootRssMb": {
+          "n": 2,
+          "min": 61.1,
+          "max": 61.1,
+          "mean": 61.1,
+          "median": 61.1,
+          "p95": 61.1,
+          "iqr": 0
+        },
+        "privateTreeMb": {
+          "n": 2,
+          "min": 33.8,
+          "max": 34.1,
+          "mean": 33.95,
+          "median": 33.95,
+          "p95": 34.1,
+          "iqr": 0.3
+        },
+        "cpuSecAtIdle": {
+          "n": 2,
+          "min": 0.13,
+          "max": 0.14,
+          "mean": 0.13,
+          "median": 0.13,
+          "p95": 0.14,
+          "iqr": 0.02
+        },
+        "postTreeRssMb": {
+          "n": 2,
+          "min": 77,
+          "max": 77.1,
+          "mean": 77.05,
+          "median": 77.05,
+          "p95": 77.1,
+          "iqr": 0.1
+        },
+        "psutilDeltaMb": {
+          "n": 2,
+          "min": 0,
+          "max": 0,
+          "mean": 0,
+          "median": 0,
+          "p95": 0,
+          "iqr": 0
+        }
+      },
+      "calls": {
+        "file-read": {
+          "id": "file-read",
+          "tool": "file_read",
+          "group": "file-read",
+          "samples": 10,
+          "ok": 10,
+          "failed": 0,
+          "skipped": 0,
+          "latencyMs": {
+            "n": 10,
+            "min": 1.8,
+            "max": 2.1,
+            "mean": 1.92,
+            "median": 1.9,
+            "p95": 2.1,
+            "iqr": 0.2
+          }
+        },
+        "file-list": {
+          "id": "file-list",
+          "tool": "file_list",
+          "group": "file-list",
+          "samples": 10,
+          "ok": 10,
+          "failed": 0,
+          "skipped": 0,
+          "latencyMs": {
+            "n": 10,
+            "min": 1.1,
+            "max": 1.8,
+            "mean": 1.43,
+            "median": 1.45,
+            "p95": 1.8,
+            "iqr": 0.2
+          }
+        },
+        "git-status": {
+          "id": "git-status",
+          "tool": "git_status",
+          "group": "git-status",
+          "samples": 10,
+          "ok": 10,
+          "failed": 0,
+          "skipped": 0,
+          "latencyMs": {
+            "n": 10,
+            "min": 61.1,
+            "max": 66.1,
+            "mean": 62.92,
+            "median": 62.65,
+            "p95": 66.1,
+            "iqr": 1.2
+          }
+        },
+        "get-time": {
+          "id": "get-time",
+          "tool": "get_time",
+          "group": "get-time",
+          "samples": 10,
+          "ok": 10,
+          "failed": 0,
+          "skipped": 0,
+          "latencyMs": {
+            "n": 10,
+            "min": 0.4,
+            "max": 0.6,
+            "mean": 0.48,
+            "median": 0.5,
+            "p95": 0.6,
+            "iqr": 0.1
+          }
+        }
+      },
+      "orphans": []
+    }
+  ]
+}

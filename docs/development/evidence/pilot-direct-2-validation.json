@@ -1,0 +1,9 @@
+{
+  "schema": "fraziym-bench-validation/1",
+  "dir": "C:\\Users\\user\\akik\\programing\\axo\\mcp\\bench\\results\\pilot-direct-2",
+  "generatedAt": "2026-10-19T13:26:23.641Z",
+  "passed": true,
+  "checks": 50,
+  "failed": 0,
+  "failures": []
+}

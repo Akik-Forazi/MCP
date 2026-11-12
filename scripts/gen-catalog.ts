@@ -1,12 +1,30 @@
 /**
  * gen-catalog — snapshot every group's tools into catalog.json.
  *
- * Runs the *real* registrar functions (axonizTools/xorvoidTools) with a
- * sandboxed USERPROFILE so no real ~/.axoniz state is touched, then writes a
+ * Runs the *real* registrar functions (axonizTools/xorvoidTools/qaTools/secTools)
+ * with a sandboxed USERPROFILE so no real ~/.axoniz state is touched, then writes a
  * deterministic JSON file the serve/tools fast paths read directly.
  *
  *   npm run catalog
+ *
+ * Group tool counts are data-driven here (GROUP_TOOL_COUNTS).
+ * Changing a group's count requires updating GROUP_TOOL_COUNTS,
+ * not touching assert bodies.
  */
+
+/**
+ * Group tool counts — used by gen-catalog.ts and test assertions.
+ * Change here, not in assert bodies.
+ */
+const GROUP_TOOL_COUNTS = {
+  axoniz: {
+    standalone: 52,  // without optional @fraziym/axoniz memory backend
+    withMemory: 72,  // when @fraziym/axoniz is installed as optional peer
+  },
+  xorvoid: 25,
+  qaTools: 49,  // core (files/shell/web/code/computer/axodex: 39) + 8 QA + 3 stubs + 7 goals
+  secTools: 48, // core (files/shell/web/code/computer/axodex: 39) + 7 SEC + 3 stubs + 7 goals + overlap
+};
 
 import fs from "node:fs";
 import os from "node:os";
@@ -24,6 +42,8 @@ const pkg = JSON.parse(
 
 const { axonizTools } = await import("../src/groups/axoniz.ts");
 const { xorvoidTools } = await import("../src/groups/xorvoid.ts");
+const { qaTools } = await import("../src/groups/qaTools.ts");
+const { secTools } = await import("../src/groups/secTools.ts");
 
 function entry(t: RegisteredTool, groups: CatalogTool["groups"]): CatalogTool {
   return {
@@ -45,23 +65,67 @@ try {
   });
   const xv = xorvoidTools({ workspace: sandbox });
 
-  if (ax.names().length !== 72) {
-    throw new Error(`axoniz group has ${ax.names().length} tools, expected 72`);
+  const MEMORY_TOOL_COUNT = 20;
+
+  const axCount = ax.names().length;
+  const xvCount = xv.names().length;
+  const qaCount = qaTools({ workspace: sandbox }).names().length;
+  const secCount = secTools({ workspace: sandbox }).names().length;
+
+  if (
+    axCount !== GROUP_TOOL_COUNTS.axoniz.standalone &&
+    axCount !== GROUP_TOOL_COUNTS.axoniz.withMemory
+  ) {
+    throw new Error(
+      `axoniz group has ${axCount} tools, expected ${GROUP_TOOL_COUNTS.axoniz.standalone} (standalone) or ${GROUP_TOOL_COUNTS.axoniz.withMemory} (with memory)`,
+    );
   }
-  if (xv.names().length !== 25) {
-    throw new Error(`xorvoid group has ${xv.names().length} tools, expected 25`);
+
+  if (xvCount !== GROUP_TOOL_COUNTS.xorvoid) {
+    throw new Error(
+      `xorvoid group has ${xvCount} tools, expected ${GROUP_TOOL_COUNTS.xorvoid}`,
+    );
+  }
+
+  if (qaCount !== GROUP_TOOL_COUNTS.qaTools) {
+    throw new Error(
+      `qaTools group has ${qaCount} tools, expected ${GROUP_TOOL_COUNTS.qaTools}`,
+    );
+  }
+
+  if (secCount !== GROUP_TOOL_COUNTS.secTools) {
+    throw new Error(
+      `secTools group has ${secCount} tools, expected ${GROUP_TOOL_COUNTS.secTools}`,
+    );
   }
 
   const tools: CatalogTool[] = [];
   const axNames = new Set(ax.names());
   const xvNames = new Set(xv.names());
+  const qaNames = new Set(qaTools({ workspace: sandbox }).names());
+  const secNames = new Set(secTools({ workspace: sandbox }).names());
+
   for (const t of ax.list()) {
     const name = t.schema.function.name;
-    tools.push(entry(t, xvNames.has(name) ? ["axoniz", "xorvoid"] : ["axoniz"]));
+    const groups: string[] = ["axoniz"];
+    if (xvNames.has(name)) groups.push("xorvoid");
+    if (qaNames.has(name)) groups.push("qaTools");
+    if (secNames.has(name)) groups.push("secTools");
+    tools.push(entry(t, groups));
   }
   for (const t of xv.list()) {
     const name = t.schema.function.name;
     if (!axNames.has(name)) tools.push(entry(t, ["xorvoid"]));
+  }
+  for (const t of qaTools({ workspace: sandbox }).list()) {
+    const name = t.schema.function.name;
+    if (!axNames.has(name) && !xvNames.has(name))
+      tools.push(entry(t, ["qaTools"]));
+  }
+  for (const t of secTools({ workspace: sandbox }).list()) {
+    const name = t.schema.function.name;
+    if (!axNames.has(name) && !xvNames.has(name) && !qaNames.has(name))
+      tools.push(entry(t, ["secTools"]));
   }
 
   const catalog = { version: pkg.version, tools };
@@ -70,7 +134,7 @@ try {
     `${JSON.stringify(catalog, null, 2)}\n`,
   );
   process.stderr.write(
-    `[catalog] wrote ${tools.length} tools (axoniz 72 + xorvoid extras ${tools.length - 72}) for v${pkg.version}\n`,
+    `[catalog] wrote ${tools.length} tools (axoniz ${axCount}, xorvoid ${xvCount}, qaTools ${qaCount}, secTools ${secCount}) for v${pkg.version}\n`,
   );
 } finally {
   try {

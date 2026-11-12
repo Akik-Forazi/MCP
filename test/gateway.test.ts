@@ -225,10 +225,10 @@ test("audit_tail filters the audit log", async () => {
   assert.match(all, /2 of 3 entries/);
 });
 
-test("GatewayHost advertises 74 catalog tools + 13 gateway tools with annotations", () => {
+test("GatewayHost advertises 89 catalog tools + 13 gateway tools with annotations", () => {
   const host = new GatewayHost(new LazyToolHost({ workspace, guard: false }), { home, guard: false });
   const names = host.names();
-  assert.equal(names.length, 74 + GATEWAY_TOOL_NAMES.length);
+  assert.equal(names.length, 89 + GATEWAY_TOOL_NAMES.length);
   const defs = host.definitions();
   const status = defs.find((d) => d.name === "router_status");
   assert.ok(status);

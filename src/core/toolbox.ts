@@ -10,9 +10,11 @@ import { PATH_ARG_MAX, PATH_ARGS } from "./path-args.ts";
 import type {
   JsonSchemaProp,
   RegisteredTool,
+  ToolCallContext,
   ToolFunctionSchema,
   ToolHandler,
   ToolMeta,
+  ToolResult,
 } from "./types.ts";
 
 function errText(e: unknown): string {
@@ -102,11 +104,11 @@ export class Toolbox {
     return this.tools.get(name)?.meta;
   }
 
-  async call(name: string, args: Record<string, unknown> = {}): Promise<string> {
+  async call(name: string, args: Record<string, unknown> = {}, ctx?: ToolCallContext): Promise<ToolResult> {
     const tool = this.tools.get(name);
     if (!tool) return `[ERROR] Unknown tool: ${name}`;
     try {
-      return await tool.handler(args);
+      return await tool.handler(args, ctx);
     } catch (e) {
       return `[ERROR] ${name}: ${errText(e)}`;
     }

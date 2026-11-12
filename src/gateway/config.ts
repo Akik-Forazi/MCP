@@ -73,9 +73,43 @@ function scope(raw: Partial<GatewayConfig>): Partial<GatewayConfig> {
   return raw;
 }
 
+/** Load axoniz LLM providers and merge them into gateway providers. */
+export function loadAxonizProviders(): ProviderConfig[] {
+  const axonizHome = process.env.FRAZIYM_HOME
+    ? path.join(process.env.FRAZIYM_HOME, "axoniz")
+    : path.join(process.env.HOME || process.env.USERPROFILE || "", ".fraziym", "axoniz");
+  const file = path.join(axonizHome, "config.json");
+  if (!fs.existsSync(file)) return [];
+  try {
+    const raw = JSON.parse(fs.readFileSync(file, "utf-8"));
+    const providers = raw?.llm?.providers ?? raw?.providers ?? {};
+    const result: ProviderConfig[] = [];
+    for (const [name, cfg] of Object.entries(providers)) {
+      const c = cfg as Record<string, unknown>;
+      if (c.enabled === false) continue;
+      result.push({
+        name,
+        kind: "openai",
+        baseUrl: String(c.baseUrl ?? c.base_url ?? "https://openrouter.ai/api/v1"),
+        apiKey: c.apiKey ? String(c.apiKey) : (c.api_key ? String(c.api_key) : undefined),
+        apiKeyEnv: c.apiKeyEnv ? String(c.apiKeyEnv) : (c.api_key_env ? String(c.api_key_env) : undefined),
+        models: c.model ? [String(c.model)] : (Array.isArray(c.models) ? c.models.map(String) : undefined),
+        timeoutMs: typeof c.timeoutMs === "number" ? c.timeoutMs : undefined,
+      });
+    }
+    return result;
+  } catch {
+    return [];
+  }
+}
+
 export function loadGatewayConfig(home = fraziymHome()): LoadedConfig {
   const file = configPath(home);
+  const axonizProviders = loadAxonizProviders();
   if (!fs.existsSync(file)) {
+    if (axonizProviders.length > 0) {
+      return { config: { providers: axonizProviders }, path: file, exists: false };
+    }
     return { config: { providers: [] }, path: file, exists: false };
   }
   try {
@@ -89,6 +123,15 @@ export function loadGatewayConfig(home = fraziymHome()): LoadedConfig {
             typeof (p as ProviderConfig).baseUrl === "string",
         )
       : [];
+    // Merge axoniz providers (dedup by name)
+    const axonizProviders = loadAxonizProviders();
+    const existingNames = new Set(providers.map((p) => p.name));
+    for (const ap of axonizProviders) {
+      if (!existingNames.has(ap.name)) {
+        providers.push(ap);
+        existingNames.add(ap.name);
+      }
+    }
     return {
       config: {
         providers,

@@ -11,7 +11,18 @@
  * `http` context) both feed raw messages in; HTTP maps the returned status.
  */
 
-import type { ToolFunctionSchema } from "../core/types.ts";
+import type { McpContentBlock, ToolCallContext, ToolFunctionSchema, ToolResult } from "../core/types.ts";
+import {
+  PromptArgumentError,
+  PromptNotFoundError,
+  ResourceNotFoundError,
+  type CompletionResult,
+  type GetPromptResult,
+  type PromptDef,
+  type ResourceContents,
+  type ResourceDef,
+  type ResourceTemplateDef,
+} from "../core/features.ts";
 
 export interface ToolHostLike {
   names(): string[];
@@ -23,7 +34,17 @@ export interface ToolHostLike {
     inputSchema: Record<string, unknown>;
     annotations?: Record<string, boolean>;
   }>;
-  call(name: string, args: Record<string, unknown>): Promise<string>;
+  call(name: string, args: Record<string, unknown>, ctx?: ToolCallContext): Promise<ToolResult>;
+  /** Optional resources/prompts/completion surface (advertised when present). */
+  listResources?(): ResourceDef[];
+  listResourceTemplates?(): ResourceTemplateDef[];
+  readResource?(uri: string): ResourceContents;
+  listPrompts?(): PromptDef[];
+  getPrompt?(name: string, args: Record<string, string>): GetPromptResult;
+  complete?(
+    ref: { type?: unknown; name?: unknown; uri?: unknown },
+    argument: { name?: unknown; value?: unknown },
+  ): CompletionResult;
 }
 
 export const MODERN_VERSION = "2026-07-28";
@@ -50,9 +71,19 @@ export interface HttpMeta {
   mcpName?: string;
 }
 
+/** Transport hooks for outbound traffic (notifications + server→client requests). */
+export interface TransportHooks {
+  /** Send a raw JSON-RPC message to the client (notification or request). */
+  send(message: unknown): void;
+  /** Close the current response stream mid-call (SSE streams; noop on stdio). */
+  closeStream?(): void;
+}
+
 export interface ProcessContext {
   /** Present when the carrier is the Streamable HTTP transport. */
   http?: HttpMeta;
+  /** Per-request outbound hooks (SSE stream / stdio writer). */
+  hooks?: TransportHooks;
 }
 
 export interface ProcessOutcome {
@@ -69,6 +100,17 @@ export interface CoreServerOptions {
   instructions?: string;
   /** Called for server-side log lines (never stdout in stdio mode). */
   log?: (line: string) => void;
+  /** stdio transport writer (server→client notifications/requests). */
+  send?: (message: unknown) => void;
+}
+
+const LOG_LEVELS = ["debug", "info", "notice", "warning", "error", "critical", "alert", "emergency"] as const;
+type LogLevel = (typeof LOG_LEVELS)[number];
+
+interface PendingOutbound {
+  resolve(result: unknown): void;
+  reject(error: Error): void;
+  timeout: ReturnType<typeof setTimeout>;
 }
 
 interface JsonRpcMessage {
@@ -109,9 +151,17 @@ export class CoreServer {
   private readonly instructions: string;
   private readonly log: (line: string) => void;
 
+  private readonly send: ((message: unknown) => void) | undefined;
+
   private negotiatedVersion: string = LATEST_LEGACY_VERSION;
-  private logLevel = "info";
+  private logLevel: LogLevel = "info";
   private readonly inflight = new Map<string, { cancelled: boolean }>();
+  private readonly subscriptions = new Set<string>();
+
+  /** Client capabilities (legacy: from initialize; modern: from per-request _meta). */
+  private clientCaps: Record<string, unknown> = {};
+  private outboundSeq = 0;
+  private readonly pending = new Map<string, PendingOutbound>();
 
   constructor(opts: CoreServerOptions) {
     this.host = opts.host;
@@ -119,6 +169,7 @@ export class CoreServer {
     this.serverName = opts.serverName ?? "fraziym-mcp";
     this.instructions = opts.instructions ?? INSTRUCTIONS;
     this.log = opts.log ?? ((line) => process.stderr.write(`${line}\n`));
+    this.send = opts.send;
   }
 
   /** Legacy-negotiated version (stdio connections); informational only. */
@@ -143,7 +194,10 @@ export class CoreServer {
         error: { code: -32700, message: "Parse error" },
       });
     }
-    const outcome = await this.process(parsed);
+    const hooks: TransportHooks | undefined = this.send
+      ? { send: (message) => this.send?.(message) }
+      : undefined;
+    const outcome = await this.process(parsed, hooks ? { hooks } : {});
     return outcome.response === null ? null : JSON.stringify(outcome.response);
   }
 
@@ -222,14 +276,22 @@ export class CoreServer {
       return errOutcome(null, -32600, "Invalid Request", undefined, 400);
     }
     const req = msg as JsonRpcMessage;
-    if (req.jsonrpc !== "2.0" || typeof req.method !== "string") {
+    if (typeof req.method !== "string") {
+      // A message without `method` may be a JSON-RPC *response* to a
+      // server→client request (sampling/createMessage, elicitation/create).
+      if (req.jsonrpc === "2.0" && req.id !== undefined && req.id !== null && this.resolveOutbound(req)) {
+        return { response: null, httpStatus: 202 };
+      }
+      return errOutcome(req.id ?? null, -32600, "Invalid Request", undefined, 400);
+    }
+    if (req.jsonrpc !== "2.0") {
       return errOutcome(req.id ?? null, -32600, "Invalid Request", undefined, 400);
     }
     const isNotification = req.id === undefined || req.id === null;
 
     if (isNotification) {
       // Notifications carry no response; HTTP answers 202 Accepted.
-      await this.dispatch(req, this.eraOf(req, ctx));
+      await this.dispatch(req, this.eraOf(req, ctx), ctx);
       return { response: null, httpStatus: 202 };
     }
 
@@ -239,8 +301,41 @@ export class CoreServer {
     }
 
     const era = this.eraOf(req, ctx);
-    const response = await this.dispatch(req, era);
+    const response = await this.dispatch(req, era, ctx);
     return { response, httpStatus: statusFor(response) };
+  }
+
+  /** Resolve a pending server→client request from an inbound JSON-RPC response. */
+  private resolveOutbound(msg: JsonRpcMessage & { result?: unknown; error?: { message?: string } }): boolean {
+    const key = String(msg.id);
+    if (!key.startsWith("srv-")) return false;
+    const entry = this.pending.get(key);
+    if (!entry) return false;
+    this.pending.delete(key);
+    clearTimeout(entry.timeout);
+    if (msg.error) entry.reject(new Error(msg.error.message ?? "client error"));
+    else entry.resolve(msg.result);
+    return true;
+  }
+
+  /** Send a server→client request (sampling/elicitation) and await its result. */
+  async requestClient(
+    method: string,
+    params: Record<string, unknown>,
+    hooks?: TransportHooks,
+    timeoutMs = 120000,
+  ): Promise<unknown> {
+    if (!hooks) throw new Error(`transport cannot carry server→client request ${method}`);
+    const id = `srv-${++this.outboundSeq}`;
+    return new Promise<unknown>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`client did not answer ${method} within ${timeoutMs}ms`));
+      }, timeoutMs);
+      timeout.unref?.();
+      this.pending.set(id, { resolve, reject, timeout });
+      hooks.send({ jsonrpc: "2.0", id, method, params });
+    });
   }
 
   /** Modern-era requests get resultType/ttlMs/_meta; legacy stays schema-clean. */
@@ -311,7 +406,11 @@ export class CoreServer {
     return null;
   }
 
-  private async dispatch(req: JsonRpcMessage, era: "modern" | "legacy"): Promise<unknown | null> {
+  private async dispatch(
+    req: JsonRpcMessage,
+    era: "modern" | "legacy",
+    ctx: ProcessContext = {},
+  ): Promise<unknown | null> {
     const { id, method } = req;
     const params = req.params ?? {};
     const isNotification = id === undefined || id === null;
@@ -357,6 +456,9 @@ export class CoreServer {
           const requested =
             typeof params.protocolVersion === "string" ? params.protocolVersion : LATEST_LEGACY_VERSION;
           this.negotiatedVersion = isLegacyVersion(requested) ? requested : LATEST_LEGACY_VERSION;
+          if (params.capabilities && typeof params.capabilities === "object") {
+            this.clientCaps = params.capabilities as Record<string, unknown>;
+          }
           this.log(
             `[fraziym-mcp] initialize: requested ${requested} → ${this.negotiatedVersion}`,
           );
@@ -387,7 +489,9 @@ export class CoreServer {
           return reply({});
 
         case "logging/setLevel": {
-          this.logLevel = typeof params.level === "string" ? params.level : this.logLevel;
+          if (typeof params.level === "string" && (LOG_LEVELS as readonly string[]).includes(params.level)) {
+            this.logLevel = params.level as LogLevel;
+          }
           return reply({});
         }
 
@@ -410,18 +514,114 @@ export class CoreServer {
           const slot = { cancelled: false };
           if (!isNotification) this.inflight.set(key, slot);
           try {
-            const text = await this.host.call(name, args);
+            const toolCtx = this.toolContext(params, ctx);
+            const result = await this.host.call(name, args, toolCtx);
             if (slot.cancelled) {
               this.log(`[fraziym-mcp] tools/call ${name}: cancelled by client, response dropped`);
               return null;
             }
-            return reply({
-              content: [{ type: "text", text }],
-              isError: text.startsWith("[ERROR]"),
-            });
+            if (typeof result === "string") {
+              return reply({
+                content: [{ type: "text", text: result }],
+                isError: result.startsWith("[ERROR]"),
+              });
+            }
+            const content: McpContentBlock[] =
+              result.length > 0 ? result : [{ type: "text", text: "" }];
+            return reply({ content, isError: false });
           } finally {
             this.inflight.delete(key);
           }
+        }
+
+        case "resources/list": {
+          if (!this.host.listResources) return fail(-32601, "Method not found: resources/list");
+          const resources = this.host.listResources();
+          return reply(
+            era === "modern"
+              ? { resources, ttlMs: LIST_TTL_MS, cacheScope: CACHE_SCOPE }
+              : { resources },
+          );
+        }
+
+        case "resources/templates/list": {
+          if (!this.host.listResourceTemplates) {
+            return fail(-32601, "Method not found: resources/templates/list");
+          }
+          const resourceTemplates = this.host.listResourceTemplates();
+          return reply(
+            era === "modern"
+              ? { resourceTemplates, ttlMs: LIST_TTL_MS, cacheScope: CACHE_SCOPE }
+              : { resourceTemplates },
+          );
+        }
+
+        case "resources/read": {
+          if (!this.host.readResource) return fail(-32601, "Method not found: resources/read");
+          const uri = typeof params.uri === "string" ? params.uri : "";
+          if (uri.length === 0) return fail(-32602, "Invalid params: missing required string uri");
+          try {
+            const contents = this.host.readResource(uri);
+            return reply({ contents: [contents] });
+          } catch (e) {
+            if (e instanceof ResourceNotFoundError) return fail(-32002, `Resource not found: ${uri}`);
+            throw e;
+          }
+        }
+
+        case "resources/subscribe": {
+          const uri = typeof params.uri === "string" ? params.uri : "";
+          if (uri.length === 0) return fail(-32602, "Invalid params: missing required string uri");
+          this.subscriptions.add(uri);
+          return reply({});
+        }
+
+        case "resources/unsubscribe": {
+          const uri = typeof params.uri === "string" ? params.uri : "";
+          if (uri.length === 0) return fail(-32602, "Invalid params: missing required string uri");
+          this.subscriptions.delete(uri);
+          return reply({});
+        }
+
+        case "prompts/list": {
+          if (!this.host.listPrompts) return fail(-32601, "Method not found: prompts/list");
+          const prompts = this.host.listPrompts();
+          return reply(
+            era === "modern" ? { prompts, ttlMs: LIST_TTL_MS, cacheScope: CACHE_SCOPE } : { prompts },
+          );
+        }
+
+        case "prompts/get": {
+          if (!this.host.getPrompt) return fail(-32601, "Method not found: prompts/get");
+          const name = typeof params.name === "string" ? params.name : "";
+          if (name.length === 0) return fail(-32602, "Invalid params: missing required string name");
+          const args: Record<string, string> = {};
+          if (params.arguments && typeof params.arguments === "object") {
+            for (const [k, v] of Object.entries(params.arguments as Record<string, unknown>)) {
+              if (typeof v === "string") args[k] = v;
+            }
+          }
+          try {
+            const prompt = this.host.getPrompt(name, args);
+            return reply({ description: prompt.description, messages: prompt.messages });
+          } catch (e) {
+            if (e instanceof PromptNotFoundError) return fail(-32602, `Unknown prompt: ${name}`);
+            if (e instanceof PromptArgumentError) return fail(-32602, `Invalid params: ${e.message}`);
+            throw e;
+          }
+        }
+
+        case "completion/complete": {
+          if (!this.host.complete) return fail(-32601, "Method not found: completion/complete");
+          const ref =
+            params.ref && typeof params.ref === "object"
+              ? (params.ref as { type?: unknown; name?: unknown; uri?: unknown })
+              : {};
+          const argument =
+            params.argument && typeof params.argument === "object"
+              ? (params.argument as { name?: unknown; value?: unknown })
+              : {};
+          return reply({ completion: this.host.complete(ref, argument) });
         }
 
         case "server/discover": {
@@ -473,8 +673,79 @@ export class CoreServer {
     return null;
   }
 
+  /** Build the per-call context: progress/log notifications, sampling, elicitation, stream control. */
+  private toolContext(params: Record<string, unknown>, ctx: ProcessContext): ToolCallContext {
+    const meta = metaOf(params);
+    const caps = this.clientCapsFor(meta);
+    const hooks = ctx.hooks;
+    const has = (v: unknown): boolean => v !== undefined && v !== null && v !== false;
+
+    const out: ToolCallContext = { clientCapabilities: caps };
+
+    if (hooks) {
+      out.log = (level: string, data: unknown, logger?: string): void => {
+        if (!this.shouldLog(level)) return;
+        hooks.send({
+          jsonrpc: "2.0",
+          method: "notifications/message",
+          params: { level, ...(logger !== undefined ? { logger } : {}), data },
+        });
+      };
+    }
+
+    const progressToken = meta.progressToken;
+    if (hooks && progressToken !== undefined && progressToken !== null) {
+      out.progress = (progress: number, total?: number, message?: string): void => {
+        hooks.send({
+          jsonrpc: "2.0",
+          method: "notifications/progress",
+          params: {
+            progressToken,
+            progress,
+            ...(total !== undefined ? { total } : {}),
+            ...(message !== undefined ? { message } : {}),
+          },
+        });
+      };
+    }
+
+    if (hooks && has(caps.sampling)) {
+      out.sample = (req) => this.requestClient("sampling/createMessage", req as Record<string, unknown>, hooks);
+    }
+    if (hooks && has(caps.elicitation)) {
+      out.elicit = (req) => this.requestClient("elicitation/create", req as Record<string, unknown>, hooks);
+    }
+    if (hooks?.closeStream) {
+      const close = hooks.closeStream.bind(hooks);
+      out.closeStream = (): void => close();
+    }
+    return out;
+  }
+
+  private clientCapsFor(meta: Record<string, unknown>): Record<string, unknown> {
+    const perRequest = meta[META_CLIENT_CAPS];
+    if (perRequest && typeof perRequest === "object") return perRequest as Record<string, unknown>;
+    return this.clientCaps;
+  }
+
+  private shouldLog(level: string): boolean {
+    const idx = (LOG_LEVELS as readonly string[]).indexOf(level);
+    if (idx === -1) return true;
+    return idx >= (LOG_LEVELS as readonly string[]).indexOf(this.logLevel);
+  }
+
   private capabilities(): Record<string, unknown> {
-    return { tools: { listChanged: false }, logging: {} };
+    const caps: Record<string, unknown> = { tools: { listChanged: false }, logging: {} };
+    if (this.host.listResources) {
+      caps.resources = { subscribe: true, listChanged: false };
+    }
+    if (this.host.listPrompts) {
+      caps.prompts = { listChanged: false };
+    }
+    if (this.host.complete) {
+      caps.completions = {};
+    }
+    return caps;
   }
 
   private serverMeta(): Record<string, unknown> {

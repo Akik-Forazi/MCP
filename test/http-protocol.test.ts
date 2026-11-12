@@ -244,7 +244,7 @@ test("Origin validation blocks DNS-rebinding origins", async () => {
   });
 });
 
-test("legacy clients negotiate initialize over HTTP without sessions", async () => {
+test("legacy initialize mints a session; later requests echo it and unknown ids are 404", async () => {
   await withServer(async (url) => {
     const init = await post(
       url,
@@ -253,11 +253,80 @@ test("legacy clients negotiate initialize over HTTP without sessions", async () 
     );
     assert.equal(init.status, 200);
     assert.equal(init.body.result.protocolVersion, "2025-06-18");
-    assert.equal(init.res.headers.get("mcp-session-id"), null);
+    const sessionId = init.res.headers.get("mcp-session-id");
+    assert.ok(sessionId);
 
-    const list = await post(url, { "Content-Type": "application/json", "MCP-Protocol-Version": "2025-06-18" }, { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
+    const list = await post(
+      url,
+      { "Content-Type": "application/json", "MCP-Protocol-Version": "2025-06-18", "Mcp-Session-Id": sessionId },
+      { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} },
+    );
     assert.equal(list.status, 200);
     assert.equal(list.body.result.tools.length, 2);
+    assert.equal(list.res.headers.get("mcp-session-id"), sessionId);
+
+    const unknown = await post(
+      url,
+      { "Content-Type": "application/json", "MCP-Protocol-Version": "2025-06-18", "Mcp-Session-Id": "nope" },
+      { jsonrpc: "2.0", id: 3, method: "tools/list", params: {} },
+    );
+    assert.equal(unknown.status, 404);
+  });
+});
+
+test("legacy DELETE terminates the session; unknown sessions are 405", async () => {
+  await withServer(async (url) => {
+    const init = await post(
+      url,
+      { "Content-Type": "application/json", "MCP-Protocol-Version": "2025-06-18" },
+      { jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "legacy", version: "1" } } },
+    );
+    const sessionId = init.res.headers.get("mcp-session-id");
+    assert.ok(sessionId);
+
+    const del = await fetch(url, {
+      method: "DELETE",
+      headers: { "MCP-Protocol-Version": "2025-06-18", "Mcp-Session-Id": sessionId },
+    });
+    assert.equal(del.status, 200);
+
+    const after = await post(
+      url,
+      { "Content-Type": "application/json", "MCP-Protocol-Version": "2025-06-18", "Mcp-Session-Id": sessionId },
+      { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} },
+    );
+    assert.equal(after.status, 404);
+
+    const noSession = await fetch(url, { method: "DELETE", headers: { "MCP-Protocol-Version": "2025-06-18" } });
+    assert.equal(noSession.status, 405);
+  });
+});
+
+test("legacy SSE POST stream carries the reply; Last-Event-ID resumes a primed stream (SEP-1699)", async () => {
+  await withServer(async (url) => {
+    const init = await post(
+      url,
+      { "Content-Type": "application/json", "MCP-Protocol-Version": "2025-06-18" },
+      { jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "legacy", version: "1" } } },
+    );
+    const sessionId = init.res.headers.get("mcp-session-id");
+    assert.ok(sessionId);
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "text/event-stream, application/json",
+        "MCP-Protocol-Version": "2025-06-18",
+        "Mcp-Session-Id": sessionId,
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 7, method: "tools/call", params: { name: "echo", arguments: { text: "hi" } } }),
+    });
+    assert.equal(res.status, 200);
+    assert.ok(res.headers.get("content-type")?.includes("text/event-stream"));
+    const text = await res.text();
+    assert.match(text, /data: \{.*"id":7/);
+    assert.match(text, /echo:hi/);
   });
 });
 

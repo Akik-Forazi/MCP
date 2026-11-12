@@ -3,7 +3,7 @@
  * shell_run / shell_python tools.
  */
 
-import type { ShellTools } from "@fraziym/axoniz/tools";
+import type { ShellTools } from "../impl/index.ts";
 
 import { argInt, argStr } from "../core/args.ts";
 import type { Toolbox } from "../core/toolbox.ts";

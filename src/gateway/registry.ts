@@ -22,7 +22,7 @@ import { Toolbox } from "../core/toolbox.ts";
 import type { JsonSchemaProp } from "../core/types.ts";
 import { apiKeyOf, loadGatewayConfig, type GatewayConfig } from "./config.ts";
 import { queueComplete, queuePull, runShadow, runVerify, type ShadowFile } from "./fix.ts";
-import { askRouted, pickProviders, providersForModel, raceModels, type ChatOutcome, type ChatMessage } from "./router.ts";
+import { askRouted, pickProviders, providersForModel, raceModels, askRoutedWithHealth, healthSummary, budgetSummary, validateModels, type ChatOutcome, type ChatMessage } from "./router.ts";
 
 const S = (description: string) => ({ type: "string", description });
 const N = (description: string) => ({ type: "number", description });
@@ -45,6 +45,7 @@ export function gatewayToolNames(): string[] {
 export const GATEWAY_TOOL_NAMES = [
   "router_ask",
   "router_race",
+  "router_health",
   "router_delegate",
   "router_status",
   "fix_verify",
@@ -204,7 +205,7 @@ export function buildGatewayToolbox(deps: GatewayDeps): Toolbox {
     ["prompt"],
     async (args) => {
       const temperature = args["temperature"];
-      const outcome = await askRouted(loadConfig(), {
+      const outcome = await askRoutedWithHealth(loadConfig(), {
         messages: messages(args),
         ...(argStr(args, "model") ? { model: argStr(args, "model") } : {}),
         ...(typeof temperature === "number" ? { temperature } : {}),
@@ -233,6 +234,24 @@ export function buildGatewayToolbox(deps: GatewayDeps): Toolbox {
       return `${outcome.text}\n\n— router_race won by ${outcomeLine(outcome)} of ${String(models.length)} racers`;
     },
     { network: true },
+  );
+
+  tb.register(
+    "router_health",
+    "Gateway: show provider health, token budgets, and model availability.",
+    {},
+    [],
+    async () => {
+      const config = loadConfig();
+      const health = healthSummary();
+      const budget = budgetSummary();
+      const models = await validateModels(config);
+      const modelLines = models.length > 0
+        ? models.map((m) => `  ${m.id} [${m.provider}]: ${m.available ? "available" : "UNAVAILABLE"}`).join("\n")
+        : "  (no models configured)";
+      return `${health}\n\n${budget}\n\nModel Availability:\n${modelLines}`;
+    },
+    { readOnly: true, network: true },
   );
 
   tb.register(

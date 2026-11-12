@@ -3,7 +3,7 @@
  * (plus python-only lint/format) tools.
  */
 
-import type { CodeTools } from "@fraziym/axoniz/tools";
+import type { CodeTools } from "../impl/index.ts";
 
 import { argInt, argStr } from "../core/args.ts";
 import type { Toolbox } from "../core/toolbox.ts";

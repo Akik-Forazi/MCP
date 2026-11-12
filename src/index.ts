@@ -24,6 +24,8 @@ export type { AxonizToolsOptions } from "./groups/axoniz.ts";
 export { axonizTools } from "./groups/axoniz.ts";
 export type { XorvoidToolsOptions } from "./groups/xorvoid.ts";
 export { xorvoidTools } from "./groups/xorvoid.ts";
+export { qaTools } from "./groups/qaTools.ts";
+export { secTools } from "./groups/secTools.ts";
 export { AxodexRunner } from "./tools/axodex.ts";
 export type { AxodexToolsMode } from "./tools/axodex.ts";
 export type { GitToolsMode } from "./tools/git.ts";

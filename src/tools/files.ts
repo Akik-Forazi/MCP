@@ -3,7 +3,7 @@
  * LLM-callable file_* tools.
  */
 
-import type { FileTools } from "@fraziym/axoniz/tools";
+import type { FileTools } from "../impl/index.ts";
 
 import { argInt, argStr } from "../core/args.ts";
 import type { Toolbox } from "../core/toolbox.ts";

@@ -7,7 +7,7 @@
  * ComputerTools, or the axodex resolver.
  */
 
-import type { UnifiedMemory } from "@fraziym/axoniz/memory";
+import type { MemoryApi } from "../impl/types/memory.ts";
 
 import type { ToolGroup } from "./catalog.ts";
 import { Toolbox } from "./toolbox.ts";
@@ -17,10 +17,13 @@ import { registerComputerTools } from "../tools/computer.ts";
 import { registerFileTools } from "../tools/files.ts";
 import { registerGitTools, type GitToolsMode } from "../tools/git.ts";
 import { registerMemoryTools } from "../tools/memory.ts";
+import { registerGoalTools } from "../tools/goals.ts";
+import { registerAgentRuntimeTools } from "../tools/agentRuntime.ts";
 import { registerMiscTools, registerProtocolTools } from "../tools/misc.ts";
 import { registerShellTools } from "../tools/shell.ts";
-import { registerStubTools, STUB_TOOL_NAMES } from "../tools/stubs.ts";
+import { STUB_TOOL_NAMES } from "../tools/agentRuntime.ts";
 import { registerWebTools } from "../tools/web.ts";
+
 
 export interface FamilyContext {
   workspace: string;
@@ -29,7 +32,7 @@ export interface FamilyContext {
   /** Shared AxodexRunner (lightweight; resolves the CLI lazily on call). */
   axodex(): AxodexRunner;
   /** Shared UnifiedMemory (heavy: opens sqlite-style stores on first use). */
-  memory(): Promise<UnifiedMemory>;
+  memory(): Promise<MemoryApi>;
 }
 
 export function createFamilyContext(
@@ -37,7 +40,7 @@ export function createFamilyContext(
   opts: { agentName?: string; memoryPaths?: { palace_path?: string; kg_path?: string } } = {},
 ): FamilyContext {
   let axodex: AxodexRunner | undefined;
-  let memPromise: Promise<UnifiedMemory> | undefined;
+  let memPromise: Promise<MemoryApi> | undefined;
   const ctx: FamilyContext = {
     workspace,
     agentName: opts.agentName ?? "fraziym-mcp",
@@ -48,12 +51,23 @@ export function createFamilyContext(
     },
     async memory() {
       if (!memPromise) {
-        memPromise = import("@fraziym/axoniz/memory").then(({ UnifiedMemory: UM }) => {
-          return new UM({
-            agent_name: ctx.agentName,
-            ...(ctx.memoryPaths ?? {}),
+        // Optional integration: mcp does NOT depend on @fraziym/axoniz.
+        // If the host app happens to provide it, use it; otherwise degrade
+        // gracefully so file/shell/git tools still work standalone.
+        memPromise = import("@fraziym/axoniz/memory" as string)
+          .then((mod: Record<string, unknown>) => {
+            const UM = mod.UnifiedMemory as new (o: Record<string, unknown>) => MemoryApi;
+            return new UM({
+              agent_name: ctx.agentName,
+              ...(ctx.memoryPaths ?? {}),
+            });
+          })
+          .catch(() => {
+            throw new Error(
+              "memory tools require @fraziym/axoniz (optional peer). " +
+                "Install it to enable memory_recall / memory_remember / memory_forget.",
+            );
           });
-        });
       }
       return memPromise;
     },
@@ -65,35 +79,35 @@ type Builder = (ctx: FamilyContext) => Promise<Toolbox>;
 
 const builders: Record<string, Builder> = {
   files_axoniz: async (ctx) => {
-    const { FileTools } = await import("@fraziym/axoniz/tools");
+    const { FileTools } = await import("../impl/index.ts");
     const tb = new Toolbox();
     registerFileTools(tb, new FileTools(ctx.workspace), { extras: false });
     return tb;
   },
 
   files_full: async (ctx) => {
-    const { FileTools } = await import("@fraziym/axoniz/tools");
+    const { FileTools } = await import("../impl/index.ts");
     const tb = new Toolbox();
     registerFileTools(tb, new FileTools(ctx.workspace));
     return tb;
   },
 
   shell: async (ctx) => {
-    const { ShellTools } = await import("@fraziym/axoniz/tools");
+    const { ShellTools } = await import("../impl/index.ts");
     const tb = new Toolbox();
     registerShellTools(tb, new ShellTools(ctx.workspace));
     return tb;
   },
 
   web: async (ctx) => {
-    const { WebTools } = await import("@fraziym/axoniz/tools");
+    const { WebTools } = await import("../impl/index.ts");
     const tb = new Toolbox();
     registerWebTools(tb, new WebTools(ctx.workspace));
     return tb;
   },
 
   code: async (ctx) => {
-    const { CodeTools } = await import("@fraziym/axoniz/tools");
+    const { CodeTools } = await import("../impl/index.ts");
     const tb = new Toolbox();
     registerCodeTools(tb, new CodeTools(ctx.workspace));
     return tb;
@@ -124,7 +138,7 @@ const builders: Record<string, Builder> = {
   },
 
   computer: async (ctx) => {
-    const { ComputerTools } = await import("@fraziym/axoniz/tools");
+    const { ComputerTools } = await import("../impl/index.ts");
     const tb = new Toolbox();
     registerComputerTools(tb, new ComputerTools(ctx.workspace));
     return tb;
@@ -148,9 +162,15 @@ const builders: Record<string, Builder> = {
     return tb;
   },
 
-  stubs: () => {
+  stubs: (ctx) => {
     const tb = new Toolbox();
-    registerStubTools(tb);
+    registerAgentRuntimeTools(tb, { workspace: ctx.workspace });
+    return Promise.resolve(tb);
+  },
+
+  goals: () => {
+    const tb = new Toolbox();
+    registerGoalTools(tb);
     return Promise.resolve(tb);
   },
 };
@@ -178,6 +198,7 @@ export function familyKey(group: ToolGroup, name: string): string | null {
   }
   if (name === "get_time" || name === "done") return "protocol";
   if (name === "absolute_query") return "misc";
+  if (name.startsWith("goal_")) return "goals";
   if (STUBS.has(name)) return "stubs";
   return null;
 }
